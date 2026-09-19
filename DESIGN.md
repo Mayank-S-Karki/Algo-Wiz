@@ -25,7 +25,7 @@ Controls 12px radius, panels 20px, chips and buttons pill.
 ## Motion
 - Hero: headline, copy, and pages settle in like drying ink (blur to sharp), once.
 - Scroll: sections reveal as they enter (`data-reveal`, app-wide observer in `ui/reveal.ts`); hero pages drift up on exit (CSS scroll-driven animation); the top bar firms up as the page scrolls (scroll timeline).
-- Scroll-scrub: on the landing page, scrolling through a tall section drives a real insertion sort step by step.
+- Scroll-scrub: on the landing page, scrolling through a tall section drives a real binary search step by step (9 steps, about 2.6 screens of scroll).
 - Data: array elements slide by identity at a speed tied to playback; explanations ink in on each step.
 All of it stops under `prefers-reduced-motion`; revealed content is never hidden without JavaScript.
 
