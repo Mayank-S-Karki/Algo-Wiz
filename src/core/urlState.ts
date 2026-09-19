@@ -14,6 +14,8 @@ export interface UrlState {
   v?: number;
   /** Linked-list index field. */
   i?: number;
+  /** Generic form fields that differ from their defaults. */
+  f?: Record<string, string>;
 }
 
 /**
@@ -28,6 +30,7 @@ export function encodeHash(state: UrlState): string {
   if (state.t !== undefined) params.set('t', String(state.t));
   if (state.v !== undefined) params.set('v', String(state.v));
   if (state.i !== undefined) params.set('i', String(state.i));
+  if (state.f && Object.keys(state.f).length) params.set('f', JSON.stringify(state.f));
   if (state.s) params.set('s', String(state.s));
   const qs = params.toString();
   return `#/a/${encodeURIComponent(state.id)}${qs ? `?${qs}` : ''}`;
@@ -49,6 +52,15 @@ export function decodeHash(hash: string): UrlState {
   if (t !== null && Number.isInteger(Number(t))) state.t = Number(t);
   const s = params.get('s');
   if (s !== null && Number.isInteger(Number(s)) && Number(s) >= 0) state.s = Number(s);
+  const f = params.get('f');
+  if (f) {
+    try {
+      const parsed = JSON.parse(f) as unknown;
+      if (parsed && typeof parsed === 'object') state.f = Object.fromEntries(Object.entries(parsed as Record<string, unknown>).map(([k, v]) => [k, String(v)]));
+    } catch {
+      /* a damaged link falls back to defaults */
+    }
+  }
   for (const key of ['v', 'i'] as const) {
     const raw = params.get(key);
     if (raw !== null && raw !== '' && Number.isInteger(Number(raw))) state[key] = Number(raw);

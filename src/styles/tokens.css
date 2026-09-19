@@ -1,71 +1,115 @@
 /*
- * Design tokens. One accent (blue). Semantic mark colors are separate because they carry meaning
- * in the visualizations. Shape rule: controls 8px, panels and cards 14px, chips and swatches pill.
+ * ALGO-WIZ design tokens: "graph-paper studio".
+ * Shape rule: controls 10px, panels 18px, chips and swatches pill.
+ * Family hues tint the chrome only. Mark colors carry meaning in the data and never change with the family.
  */
+:root {
+  --font-display: 'Bricolage Grotesque Variable', 'Geist Variable', ui-sans-serif, system-ui, sans-serif;
+  --font-sans: 'Geist Variable', ui-sans-serif, system-ui, -apple-system, 'Segoe UI', sans-serif;
+  --font-mono: 'Geist Mono Variable', ui-monospace, 'SF Mono', Menlo, monospace;
+
+  --r-ctl: 10px;
+  --r-panel: 18px;
+  --ease: cubic-bezier(0.16, 1, 0.3, 1);
+  --topbar-h: 60px;
+  --h: 262; /* family hue; overridden per family */
+}
+
+/* Family hues (degrees in OKLCH). */
+:root[data-family='sorting'] { --h: 262; }
+:root[data-family='searching'] { --h: 236; }
+:root[data-family='linkedlist'] { --h: 340; }
+:root[data-family='graph'] { --h: 300; }
+:root[data-family='tree'] { --h: 145; }
+:root[data-family='dp'] { --h: 58; }
+:root[data-family='strings'] { --h: 15; }
+:root[data-family='classics'] { --h: 190; }
+:root[data-family='race'] { --h: 25; }
+
 :root,
 :root[data-theme='dark'] {
   color-scheme: dark;
-  --bg: #0b0d10;
-  --surface: #12151a;
-  --surface-2: #181c22;
-  --surface-3: #1f242c;
-  --border: #252b34;
-  --border-strong: #343c48;
-  --text: #e8ebf0;
-  --muted: #98a2b0;
-  --accent: #5b93ff;
-  --accent-ink: #07101f;
-  --accent-soft: rgb(91 147 255 / 0.14);
-  --shadow: 0 1px 0 rgb(255 255 255 / 0.03) inset, 0 12px 32px rgb(3 6 12 / 0.5);
+  --bg: oklch(0.16 0.026 268);
+  --bg-2: oklch(0.19 0.03 268);
+  --surface: oklch(0.215 0.032 268);
+  --surface-2: oklch(0.255 0.036 268);
+  --line: oklch(0.32 0.04 268);
+  --line-strong: oklch(0.42 0.045 268);
+  --grid: oklch(0.3 0.04 268 / 0.55);
+  --text: oklch(0.96 0.008 268);
+  --muted: oklch(0.76 0.03 268);
+  --faint: oklch(0.62 0.035 268);
+  --shadow: 0 1px 0 oklch(1 0 0 / 0.04) inset, 0 18px 40px -12px oklch(0.05 0.03 268 / 0.7), 0 4px 10px -4px oklch(0.05 0.03 268 / 0.5);
 
-  --bar: #4b5768;
-  --m-compare: #f2b84b;
-  --m-swap: #ef6b73;
-  --m-active: #5b93ff;
-  --m-found: #3ecf8e;
-  --m-sorted: #2f9c78;
-  --m-pivot: #b391f4;
-  --m-range: #34517f;
-  --m-insert: #38bdc2;
-  --m-delete: #e05561;
-  --m-notfound: #2a313b;
-  --m-pointer: #f2b84b;
+  --bar: oklch(0.5 0.045 262);
+  --m-compare: oklch(0.82 0.15 85);
+  --m-swap: oklch(0.7 0.19 25);
+  --m-found: oklch(0.8 0.18 155);
+  --m-sorted: oklch(0.66 0.14 165);
+  --m-pivot: oklch(0.72 0.17 305);
+  --m-range: oklch(0.45 0.08 250);
+  --m-insert: oklch(0.78 0.11 195);
+  --m-delete: oklch(0.65 0.2 20);
+  --m-notfound: oklch(0.3 0.03 268);
+  --m-pointer: oklch(0.82 0.15 85);
+  --m-frontier: oklch(0.78 0.13 235);
+  --m-visited: oklch(0.42 0.09 262);
+  --m-path: oklch(0.85 0.17 95);
+  --wall: oklch(0.11 0.02 268);
+  --mud: oklch(0.42 0.07 60);
 }
 
 :root[data-theme='light'] {
   color-scheme: light;
-  --bg: #f5f6f8;
-  --surface: #ffffff;
-  --surface-2: #f0f2f5;
-  --surface-3: #e7eaef;
-  --border: #dde1e7;
-  --border-strong: #c5ccd6;
-  --text: #14181d;
-  --muted: #566170;
-  --accent: #2563d9;
-  --accent-ink: #ffffff;
-  --accent-soft: rgb(37 99 217 / 0.1);
-  --shadow: 0 1px 2px rgb(20 30 50 / 0.06), 0 12px 28px rgb(20 30 50 / 0.08);
+  --bg: oklch(0.975 0.008 245);
+  --bg-2: oklch(0.955 0.012 245);
+  --surface: oklch(1 0 0);
+  --surface-2: oklch(0.965 0.012 250);
+  --line: oklch(0.89 0.018 250);
+  --line-strong: oklch(0.78 0.03 255);
+  --grid: oklch(0.88 0.03 250 / 0.7);
+  --text: oklch(0.21 0.045 268);
+  --muted: oklch(0.42 0.04 262);
+  --faint: oklch(0.52 0.035 262);
+  --shadow: 0 1px 0 oklch(1 0 0) inset, 0 16px 34px -14px oklch(0.3 0.06 268 / 0.28), 0 3px 8px -3px oklch(0.3 0.06 268 / 0.12);
 
-  --bar: #9aa6b6;
-  --m-compare: #e0a020;
-  --m-swap: #e04a55;
-  --m-active: #2563d9;
-  --m-found: #16a56a;
-  --m-sorted: #2f9c78;
-  --m-pivot: #8b62e0;
-  --m-range: #a9c0ee;
-  --m-insert: #1e9ea3;
-  --m-delete: #d23b48;
-  --m-notfound: #dfe3e9;
-  --m-pointer: #e0a020;
+  --bar: oklch(0.72 0.04 255);
+  --m-compare: oklch(0.78 0.16 80);
+  --m-swap: oklch(0.63 0.21 25);
+  --m-found: oklch(0.65 0.19 155);
+  --m-sorted: oklch(0.62 0.15 165);
+  --m-pivot: oklch(0.6 0.2 305);
+  --m-range: oklch(0.82 0.07 250);
+  --m-insert: oklch(0.64 0.12 195);
+  --m-delete: oklch(0.58 0.21 20);
+  --m-notfound: oklch(0.91 0.015 255);
+  --m-pointer: oklch(0.72 0.16 80);
+  --m-frontier: oklch(0.72 0.13 235);
+  --m-visited: oklch(0.83 0.06 262);
+  --m-path: oklch(0.72 0.18 85);
+  --wall: oklch(0.3 0.04 268);
+  --mud: oklch(0.8 0.09 70);
 }
 
-:root {
-  --font-sans: 'Geist Variable', ui-sans-serif, system-ui, -apple-system, 'Segoe UI', sans-serif;
-  --font-mono: 'Geist Mono Variable', ui-monospace, 'SF Mono', Menlo, monospace;
-  --r-ctl: 8px;
-  --r-card: 14px;
-  --ease: cubic-bezier(0.16, 1, 0.3, 1);
-  --topbar-h: 56px;
+/*
+ * Family-tinted tokens. They live in their own rules so any element with class `hued` and an inline `--h`
+ * (sidebar groups, landing tiles, palette rows) recomputes them for its own hue.
+ */
+:root,
+:root[data-theme='dark'],
+:root .hued,
+:root[data-theme='dark'] .hued {
+  --fam: oklch(0.76 0.15 var(--h));
+  --fam-strong: oklch(0.68 0.19 var(--h));
+  --fam-soft: oklch(0.76 0.15 var(--h) / 0.16);
+  --fam-ink: oklch(0.2 0.05 var(--h));
+  --m-active: var(--fam);
+}
+:root[data-theme='light'],
+:root[data-theme='light'] .hued {
+  --fam: oklch(0.52 0.19 var(--h));
+  --fam-strong: oklch(0.46 0.2 var(--h));
+  --fam-soft: oklch(0.52 0.19 var(--h) / 0.1);
+  --fam-ink: oklch(0.99 0.01 var(--h));
+  --m-active: var(--fam);
 }

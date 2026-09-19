@@ -40,7 +40,7 @@ export const unionFind: AlgorithmDef<FormInput, TreeState> = {
       const nodes: Record<number, TreeNode> = {};
       for (let i = 0; i < n; i++) nodes[i] = { label: String(i), children: [], sub: parent[i] === i ? `rank ${rank[i]}` : undefined };
       for (let i = 0; i < n; i++) if (parent[i] !== i) nodes[parent[i]].children.push(i);
-      r.snap({ nodes, roots: parent.map((p, i) => (p === i ? i : -1)).filter((i) => i >= 0), binary: false, array: [...parent], arrayLabel: 'parent[ ]' }, marks, line, explain);
+      r.snap({ nodes, roots: parent.map((p, i) => (p === i ? i : -1)).filter((i) => i >= 0), binary: false, array: [...parent], arrayLabel: 'parent[ ]', arrayIsNodeIds: true }, marks, line, explain);
     };
     /** Finds the root of x, compressing the path and recording it. */
     const find = (x: number): number => {

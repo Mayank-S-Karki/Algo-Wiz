@@ -4,13 +4,16 @@ import { useCallback, useEffect, useState } from 'react';
 /** Theme names. */
 export type Theme = 'dark' | 'light';
 
-/** Reads the saved theme; storage can throw in private windows, so failures fall back to dark. */
+/** Reads the saved theme, else the system preference; storage can throw in private windows. */
 function readTheme(): Theme {
   try {
-    return localStorage.getItem('algowiz-theme') === 'light' ? 'light' : 'dark';
+    const saved = localStorage.getItem('algowiz-theme');
+    if (saved === 'light' || saved === 'dark') return saved;
   } catch {
-    return 'dark';
+    /* fall through to the system preference */
   }
+  if (typeof window.matchMedia === 'function' && window.matchMedia('(prefers-color-scheme: light)').matches) return 'light';
+  return 'dark';
 }
 
 /**

@@ -1,9 +1,13 @@
 /** Entry point: loads self-hosted fonts and styles, then mounts the app. */
 import '@fontsource-variable/geist';
 import '@fontsource-variable/geist-mono';
+import '@fontsource-variable/bricolage-grotesque';
 import './styles/tokens.css';
 import './styles/base.css';
-import './styles/components.css';
+import './styles/shell.css';
+import './styles/page.css';
+import './styles/views.css';
+import './styles/landing.css';
 import { StrictMode } from 'react';
 import { createRoot } from 'react-dom/client';
 import { App } from './App';

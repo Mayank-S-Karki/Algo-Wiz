@@ -88,17 +88,79 @@ describe('input validation', () => {
   });
 });
 
-describe('sidebar search', () => {
-  it('filters algorithms by name', () => {
+describe('search palette', () => {
+  it('opens with the / key, filters, and navigates on Enter', () => {
     render(<App />);
-    fireEvent.change(screen.getByLabelText('Search algorithms'), { target: { value: 'heap' } });
-    expect(screen.getByRole('link', { name: 'Heap Sort' })).toBeInTheDocument();
-    expect(screen.queryByRole('link', { name: 'Bubble Sort' })).toBeNull();
+    fireEvent.keyDown(window, { key: '/' });
+    const box = screen.getByRole('combobox', { name: 'Search algorithms' });
+    fireEvent.change(box, { target: { value: 'heap' } });
+    expect(screen.getByRole('option', { name: /Heap Sort/ })).toBeInTheDocument();
+    expect(screen.queryByRole('option', { name: /Bubble Sort/ })).toBeNull();
+    fireEvent.keyDown(box, { key: 'Enter' });
+    expect(window.location.hash).toBe('#/a/heap-sort');
+  });
+  it('opens with Ctrl+K and closes with Escape', () => {
+    render(<App />);
+    fireEvent.keyDown(window, { key: 'k', ctrlKey: true });
+    const box = screen.getByRole('combobox', { name: 'Search algorithms' });
+    fireEvent.keyDown(box, { key: 'Escape' });
+    expect(screen.queryByRole('dialog')).toBeNull();
   });
   it('explains an empty result', () => {
     render(<App />);
-    fireEvent.change(screen.getByLabelText('Search algorithms'), { target: { value: 'zzzz' } });
+    fireEvent.keyDown(window, { key: '/' });
+    fireEvent.change(screen.getByRole('combobox', { name: 'Search algorithms' }), { target: { value: 'zzzz' } });
     expect(screen.getByText(/No algorithm matches/)).toBeInTheDocument();
+  });
+});
+
+describe('sidebar', () => {
+  it('lists algorithms from every family on algorithm pages', () => {
+    window.location.hash = '#/a/bubble-sort';
+    render(<App />);
+    for (const name of ['Bubble Sort', 'Binary Search', 'Dijkstra\'s Shortest Paths', 'Sudoku Solver', 'KMP']) {
+      expect(screen.getAllByRole('link', { name: new RegExp(name.split(' (')[0]) }).length).toBeGreaterThan(0);
+    }
+  });
+});
+
+describe('form-based algorithms', () => {
+  it('shows an error for a bad edge list and keeps the last run', () => {
+    window.location.hash = '#/a/graph-bfs';
+    render(<App />);
+    fireEvent.change(screen.getByLabelText('Edges'), { target: { value: 'A~B' } });
+    expect(screen.getByRole('alert')).toHaveTextContent('not an edge');
+    expect(screen.getByText(/Step 1 of/)).toBeInTheDocument();
+  });
+  it('recomputes when the input becomes valid', () => {
+    window.location.hash = '#/a/graph-bfs';
+    render(<App />);
+    fireEvent.change(screen.getByLabelText('Edges'), { target: { value: 'A-B' } });
+    expect(screen.queryByRole('alert')).toBeNull();
+  });
+  it('toggling a board cell edits the wall list', () => {
+    window.location.hash = '#/a/grid-bfs';
+    render(<App />);
+    const walls = screen.getByLabelText('Walls (cell numbers)') as HTMLInputElement;
+    const before = walls.value;
+    const cells = document.querySelectorAll('.gcell[data-clickable="true"]');
+    fireEvent.click(cells[0]);
+    expect((screen.getByLabelText('Walls (cell numbers)') as HTMLInputElement).value).not.toBe(before);
+  });
+});
+
+describe('race page', () => {
+  it('renders all four racers and finishes them', () => {
+    window.location.hash = '#/race';
+    render(<App />);
+    expect(screen.getByRole('heading', { name: 'Sorting race' })).toBeInTheDocument();
+    fireEvent.keyDown(window, { key: 'End' });
+    expect(screen.getAllByText(/Finished #/).length).toBe(4);
+  });
+  it('limits the race to four algorithms', () => {
+    window.location.hash = '#/race';
+    render(<App />);
+    expect(screen.getByRole('button', { name: 'Heap Sort' })).toBeDisabled();
   });
 });
 

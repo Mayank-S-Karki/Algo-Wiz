@@ -28,7 +28,7 @@ export const nQueens = defineForm({
     const snap = (marks: Mark[], line: number, explain: string) => {
       steps++;
       const text = Array(n * n).fill('');
-      col.forEach((c, row) => (text[row * n + c] = '♛'));
+      col.forEach((c, row) => (text[row * n + c] = 'Q'));
       r.snap({ rows: n, cols: n, walls: Array(n * n).fill(false), text }, marks, line, explain);
     };
     /** True when a queen at (row, c) would be attacked by an earlier row. */

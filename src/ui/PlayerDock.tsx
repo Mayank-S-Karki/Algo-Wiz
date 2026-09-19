@@ -1,5 +1,5 @@
-/** Bottom playback bar: transport buttons, scrubber, speed, and loop. */
-import { CaretLeft, CaretRight, Pause, Play, Repeat, SkipBack, SkipForward } from '@phosphor-icons/react';
+/** Bottom playback bar: transport buttons, scrubber, speed, loop, and sound. */
+import { CaretLeft, CaretRight, Pause, Play, Repeat, SkipBack, SkipForward, SpeakerHigh, SpeakerSlash } from '@phosphor-icons/react';
 import { SPEEDS, type Player } from './usePlayer';
 
 /** Props for {@link PlayerDock}. */
@@ -7,13 +7,16 @@ interface PlayerDockProps {
   player: Player;
   /** Total number of steps. */
   length: number;
+  /** Sound state; omit to hide the toggle. */
+  sound?: boolean;
+  onSound?: (on: boolean) => void;
 }
 
 /**
  * Transport controls. Every button has an accessible name and a tooltip with its shortcut.
- * @param props - player state and the run length
+ * @param props - player state, run length, and optional sound toggle
  */
-export function PlayerDock({ player, length }: PlayerDockProps) {
+export function PlayerDock({ player, length, sound, onSound }: PlayerDockProps) {
   const speedIdx = Math.max(SPEEDS.indexOf(player.speed as (typeof SPEEDS)[number]), 0);
   return (
     <div className="dock" role="group" aria-label="Playback controls">
@@ -47,9 +50,16 @@ export function PlayerDock({ player, length }: PlayerDockProps) {
         <input type="range" min={0} max={SPEEDS.length - 1} step={1} value={speedIdx} onChange={(e) => player.setSpeed(SPEEDS[Number(e.target.value)])} aria-valuetext={`${player.speed} times`} />
         <output>{player.speed}x</output>
       </label>
-      <button className="icon-btn" data-on={player.loop} aria-pressed={player.loop} onClick={() => player.setLoop(!player.loop)} aria-label="Loop" title="Loop playback">
-        <Repeat size={18} weight="bold" />
-      </button>
+      <div className="dock-toggles">
+        <button className="icon-btn" data-on={player.loop} aria-pressed={player.loop} onClick={() => player.setLoop(!player.loop)} aria-label="Loop" title="Loop playback">
+          <Repeat size={18} weight="bold" />
+        </button>
+        {onSound && (
+          <button className="icon-btn" data-on={!!sound} aria-pressed={!!sound} onClick={() => onSound(!sound)} aria-label="Sound" title="Sound: pitch follows the values">
+            {sound ? <SpeakerHigh size={18} weight="bold" /> : <SpeakerSlash size={18} weight="bold" />}
+          </button>
+        )}
+      </div>
     </div>
   );
 }

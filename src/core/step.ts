@@ -246,6 +246,8 @@ export interface TreeState {
   /** Optional array drawn under the tree (heaps). */
   array?: Array<number | string>;
   arrayLabel?: string;
+  /** True when marks on node ids should also light up the array cell with the same index (heaps, union-find). */
+  arrayIsNodeIds?: boolean;
 }
 
 /** State drawn by the `text` view (string matching). Marks index into `text`. */

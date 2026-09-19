@@ -13,7 +13,7 @@ function heapState(a: number[]): TreeState {
     const r = 2 * i + 2;
     nodes[i] = { label: String(v), children: [l < a.length ? l : null, r < a.length ? r : null] };
   });
-  return { nodes, roots: a.length ? [0] : [], binary: true, array: [...a], arrayLabel: 'Stored as an array' };
+  return { nodes, roots: a.length ? [0] : [], binary: true, array: [...a], arrayLabel: 'Stored as an array', arrayIsNodeIds: true };
 }
 
 /** A min-heap or max-heap with step recording. */

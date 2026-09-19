@@ -1,6 +1,8 @@
 /** Right-hand tabbed panels: Explain, Code, Theory, Stats, History. */
 import { memo, useEffect, useRef, useState } from 'react';
+import { CaretRight } from '@phosphor-icons/react';
 import type { AlgorithmDef, Step } from '../core/step';
+import { GrowthChart } from './GrowthChart';
 
 /** Tab ids. */
 type Tab = 'explain' | 'code' | 'theory' | 'stats' | 'history';
@@ -42,7 +44,7 @@ export function Panels({ def, steps, index, onSeek }: PanelsProps) {
         {tab === 'explain' && <ExplainTab def={def} steps={steps} index={index} />}
         {tab === 'code' && <CodeTab def={def} line={step?.line ?? null} />}
         {tab === 'theory' && <TheoryTab def={def} />}
-        {tab === 'stats' && <StatsTab step={step} total={steps.length} index={index} />}
+        {tab === 'stats' && <StatsTab def={def} step={step} total={steps.length} index={index} />}
         {tab === 'history' && <HistoryTab steps={steps} index={index} onSeek={onSeek} />}
       </div>
     </aside>
@@ -79,7 +81,7 @@ function CodeTab({ def, line }: { def: AlgorithmDef<any, any>; line: number | nu
     <ol className="code" aria-label="Pseudocode">
       {def.pseudocode.map((text, i) => (
         <li key={i} data-active={line === i} aria-current={line === i ? 'step' : undefined}>
-          <span className="ln">{i + 1}</span>
+          <span className="ln">{line === i ? <CaretRight size={12} weight="bold" aria-hidden="true" /> : i + 1}</span>
           <code>{text}</code>
         </li>
       ))}
@@ -126,15 +128,21 @@ function TheoryTab({ def }: { def: AlgorithmDef<any, any> }) {
 }
 
 /** Stats tab: live counters for the current step. */
-function StatsTab({ step, total, index }: { step: Step<any> | undefined; total: number; index: number }) {
+function StatsTab({ def, step, total, index }: { def: AlgorithmDef<any, any>; step: Step<any> | undefined; total: number; index: number }) {
   const entries = Object.entries(step?.stats ?? {});
   return (
-    <dl className="stats">
-      <div><dt>Step</dt><dd>{index + 1}<span className="dim"> / {total}</span></dd></div>
-      {entries.map(([k, v]) => (
-        <div key={k}><dt>{k.replace(/([A-Z])/g, ' $1').toLowerCase()}</dt><dd>{v}</dd></div>
-      ))}
-    </dl>
+    <div className="stack">
+      <dl className="stats">
+        <div><dt>Step</dt><dd>{index + 1}<span className="dim"> / {total}</span></dd></div>
+        {entries.map(([k, v]) => (
+          <div key={k}><dt>{k.replace(/([A-Z])/g, ' $1').toLowerCase()}</dt><dd>{v}</dd></div>
+        ))}
+      </dl>
+      <div>
+        <h3>How it scales</h3>
+        <GrowthChart complexity={def.complexity} />
+      </div>
+    </div>
   );
 }
 
