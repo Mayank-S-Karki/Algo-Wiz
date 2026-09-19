@@ -10,6 +10,10 @@ export interface UrlState {
   t?: number;
   /** Step index. */
   s?: number;
+  /** Linked-list value field. */
+  v?: number;
+  /** Linked-list index field. */
+  i?: number;
 }
 
 /**
@@ -22,6 +26,8 @@ export function encodeHash(state: UrlState): string {
   const params = new URLSearchParams();
   if (state.q) params.set('q', state.q);
   if (state.t !== undefined) params.set('t', String(state.t));
+  if (state.v !== undefined) params.set('v', String(state.v));
+  if (state.i !== undefined) params.set('i', String(state.i));
   if (state.s) params.set('s', String(state.s));
   const qs = params.toString();
   return `#/a/${encodeURIComponent(state.id)}${qs ? `?${qs}` : ''}`;
@@ -43,5 +49,9 @@ export function decodeHash(hash: string): UrlState {
   if (t !== null && Number.isInteger(Number(t))) state.t = Number(t);
   const s = params.get('s');
   if (s !== null && Number.isInteger(Number(s)) && Number(s) >= 0) state.s = Number(s);
+  for (const key of ['v', 'i'] as const) {
+    const raw = params.get(key);
+    if (raw !== null && raw !== '' && Number.isInteger(Number(raw))) state[key] = Number(raw);
+  }
   return state;
 }

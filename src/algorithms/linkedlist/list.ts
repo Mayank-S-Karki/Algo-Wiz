@@ -80,6 +80,7 @@ class Rec {
 function codeFor(kind: ListKind, op: ListOp): Code[] {
   const dbl = kind === 'doubly';
   const cir = kind === 'circular';
+  /** Includes a pseudocode line only when the list kind needs it. */
   const opt = (cond: boolean, line: Code): Code[] => (cond ? [line] : []);
   const end = cir ? 'head' : 'null';
   switch (op) {
@@ -214,7 +215,9 @@ export function runListOp(kind: ListKind, op: ListOp, input: ListInput): Step<Li
   const { list, value, index } = input;
   const r = new Rec([...list], kind, codeFor(kind, op));
   const n = list.length;
+  /** The list after inserting `v` at position `i`. */
   const nodesWith = (i: number, v: number): number[] => [...list.slice(0, i), v, ...list.slice(i)];
+  /** The list after removing the node at position `i`. */
   const nodesWithout = (i: number): number[] => list.filter((_, k) => k !== i);
   const cir = kind === 'circular';
   const dbl = kind === 'doubly';

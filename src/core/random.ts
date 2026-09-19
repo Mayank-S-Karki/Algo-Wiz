@@ -29,6 +29,7 @@ export type InputPreset = 'random' | 'sorted' | 'reversed' | 'nearly' | 'unique'
  */
 export function makeArray(preset: InputPreset, n: number, seed: number, max = 99): number[] {
   const rnd = mulberry32(seed);
+  /** Draws one value in 1..max. */
   const rand = () => 1 + Math.floor(rnd() * max);
   const base = Array.from({ length: n }, rand);
   switch (preset) {
