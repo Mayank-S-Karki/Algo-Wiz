@@ -38,8 +38,8 @@ export function LabTeaser() {
   });
   return (
     <section className="teaser" ref={ref}>
-      <div className="teaser-copy">
-        <h2>Watch n² fall behind n log n.</h2>
+      <div className="teaser-copy" data-reveal>
+        <h2>Watch n² fall behind <em>n log n.</em></h2>
         <p>Every algorithm page has a Complexity Lab. It runs the algorithm on growing inputs right in your browser, plots the time and memory it really used, and fits the curve.</p>
         <ul className="teaser-legend">
           {series.map((s) => (
@@ -53,7 +53,7 @@ export function LabTeaser() {
           ))}
         </ul>
       </div>
-      <div className="teaser-chart">
+      <div className="teaser-chart" data-reveal style={{ ['--i' as string]: 1 }}>
         <LabChart series={series} xLabel="input size (elements)" yLabel="comparisons on random input" size="sm" />
       </div>
     </section>

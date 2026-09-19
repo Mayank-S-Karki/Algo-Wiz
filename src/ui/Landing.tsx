@@ -1,16 +1,11 @@
-/** Landing page: hero with live boards, a ticker, one live tile per family, and a look at the shared player. */
+/** Landing page: hero with a live run on a glass page, a scroll-driven sort, family pages, and the lab teaser. */
 import { ArrowRight, Trophy } from '@phosphor-icons/react';
-import { useEffect, useMemo } from 'react';
 import { REGISTRY } from '../algorithms';
 import { encodeHash } from '../core/urlState';
 import { FAMILIES } from './family';
-import { defaultInput } from './inputs';
-import { MiniStage } from './MiniStage';
-import { usePlayer } from './usePlayer';
 import { LabTeaser } from './lab/LabTeaser';
-
-/** Order of the family tiles; chosen so each bento row fills its 12 columns. */
-const TILE_ORDER = ['sorting', 'searching', 'graph', 'tree', 'linkedlist', 'dp', 'strings', 'classics'];
+import { MiniStage } from './MiniStage';
+import { ScrollScrub } from './ScrollScrub';
 
 /** Keyboard shortcuts worth knowing. */
 const SHORTCUTS: Array<[string, string]> = [
@@ -22,49 +17,18 @@ const SHORTCUTS: Array<[string, string]> = [
 ];
 
 /**
- * Pseudocode with the active line highlighted, driven by a real looping run.
- * It shows what the Code tab does on every algorithm page.
- */
-function LiveCode({ id }: { id: string }) {
-  const def = REGISTRY.get(id);
-  const steps = useMemo(() => (def ? def.run(defaultInput(def)) : []), [def]);
-  const player = usePlayer(steps.length);
-  const { play, setSpeed, setLoop } = player;
-  useEffect(() => {
-    setSpeed(1);
-    setLoop(true);
-    play();
-    // Start once on mount.
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
-  if (!def || !steps.length) return null;
-  const step = steps[player.index];
-  return (
-    <div className="live-code" aria-hidden="true">
-      <p className="live-explain">{step.explain}</p>
-      <ol className="code">
-        {def.pseudocode.map((line, i) => (
-          <li key={i} data-active={step.line === i}>
-            <span className="ln">{i + 1}</span>
-            <code>{line}</code>
-          </li>
-        ))}
-      </ol>
-    </div>
-  );
-}
-
-/**
  * The landing page. Every preview is a real run of the same engine the app uses.
+ * Sections settle in as they scroll into view (see `ui/reveal.ts`).
  */
 export function Landing() {
   const total = REGISTRY.all.length;
-  const names = useMemo(() => REGISTRY.all.map((d) => d.name), []);
   return (
     <div className="landing">
       <section className="hero">
         <div className="hero-copy">
-          <h1>Watch algorithms think.</h1>
+          <h1>
+            Watch algorithms <em>think.</em>
+          </h1>
           <p className="hero-sub">Step through {total} algorithms with plain-English explanations, live pseudocode, and full playback control.</p>
           <div className="hero-cta">
             <a className="btn primary" href="#families" onClick={(e) => { e.preventDefault(); document.getElementById('families')?.scrollIntoView({ behavior: 'smooth' }); }}>
@@ -75,41 +39,37 @@ export function Landing() {
             </a>
           </div>
         </div>
-        <div className="hero-boards" aria-hidden="true">
-          <div className="board board-a" style={{ ['--h' as string]: 262 }}>
-            <header><span>Quick Sort</span></header>
-            <MiniStage id="quick-sort" size={14} speed={4} caption />
+        <div className="hero-page" aria-hidden="true">
+          <div className="page-card">
+            <header>
+              <span className="page-title">Quick Sort</span>
+              <span className="mono dim">O(n log n)</span>
+            </header>
+            <MiniStage id="quick-sort" size={16} speed={3} caption />
           </div>
-          <div className="board board-b" style={{ ['--h' as string]: 300 }}>
-            <header><span>A* Search</span></header>
+          <div className="page-card page-card-small">
+            <header>
+              <span className="page-title">A* Search</span>
+            </header>
             <MiniStage id="grid-astar" speed={6} />
-          </div>
-          <div className="board board-c" style={{ ['--h' as string]: 145 }}>
-            <header><span>AVL Insert</span></header>
-            <MiniStage id="avl-insert" speed={2} />
           </div>
         </div>
       </section>
 
-      <div className="ticker" aria-hidden="true">
-        <div className="ticker-track">
-          {[...names, ...names].map((n, i) => (
-            <span key={i}>{n}</span>
-          ))}
-        </div>
-      </div>
+      <ScrollScrub />
 
       <section id="families" className="families">
-        <h2>Eight families, one player</h2>
+        <h2 data-reveal>Eight families, one player.</h2>
+        <p className="section-lede" data-reveal>Every algorithm, from bubble sort to Tarjan's components, is played, paused, and explained the same way.</p>
         <div className="bento">
-          {[...FAMILIES].sort((a, b) => TILE_ORDER.indexOf(a.id) - TILE_ORDER.indexOf(b.id)).map((f) => {
+          {FAMILIES.map((f, i) => {
             const defs = REGISTRY.byFamily(f.id);
             return (
-              <a key={f.id} className="tile" data-family={f.id} style={{ ['--h' as string]: f.hue }} href={encodeHash({ id: defs[0].id })}>
+              <a key={f.id} className="tile" data-family={f.id} data-reveal style={{ ['--h' as string]: f.hue, ['--i' as string]: i % 3 }} href={encodeHash({ id: defs[0].id })}>
                 <div className="tile-view"><MiniStage id={f.previewId} speed={3} /></div>
                 <div className="tile-text">
                   <h3>
-                    <f.Icon size={20} weight="duotone" />
+                    <span className="sigil"><f.Icon size={18} weight="duotone" /></span>
                     {f.label}
                     <span className="count">{defs.length}</span>
                   </h3>
@@ -123,23 +83,15 @@ export function Landing() {
 
       <LabTeaser />
 
-      <section className="player-demo">
-        <div className="pd-copy">
-          <h2>Every step explained.</h2>
-          <p>Each frame comes with one sentence of plain English, the pseudocode line that caused it, and running counters. Step forward, step back, or scrub anywhere.</p>
-          <ul className="shortcuts" aria-label="Keyboard shortcuts">
-            {SHORTCUTS.map(([k, d]) => (
-              <li key={k}>
-                <kbd>{k}</kbd>
-                <span>{d}</span>
-              </li>
-            ))}
-          </ul>
-        </div>
-        <LiveCode id="binary-search" />
-      </section>
-
-      <footer className="site-foot">
+      <footer className="site-foot" data-reveal>
+        <ul className="shortcuts" aria-label="Keyboard shortcuts">
+          {SHORTCUTS.map(([k, d]) => (
+            <li key={k}>
+              <kbd>{k}</kbd>
+              <span>{d}</span>
+            </li>
+          ))}
+        </ul>
         <p>Built by Mayank Karki, Nitin Kandpal, and Swarit Kumar. MIT license.</p>
       </footer>
     </div>

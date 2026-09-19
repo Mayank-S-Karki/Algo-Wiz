@@ -3,28 +3,31 @@
 The visual system, recorded from the shipped app.
 
 ## World
-Graph-paper studio. The stage is a sheet of graph paper on which every algorithm is drawn; the chrome around it is calm so the data carries the color.
+Two moods of one book.
+- **Dark: spellbook codex.** Ink-black pages, warm gold hairlines and glyphs, parchment text. A gold sigil ring naming the eight families turns slowly behind everything, under lamplight haze and paper grain.
+- **Light: misty dawn.** A mist-blue to sage gradient with two drifting pools of soft light, frosted glass panels, a lake-blue accent. Same layout, same room at sunrise.
+The first visit follows the system setting; T switches.
 
 ## Color
-OKLCH tokens in `src/styles/tokens.css`, two themes (cool paper light, deep ink dark; the first visit follows the system setting).
-- **Chrome** is tinted by the algorithm's family through one hue variable (`--h`): sorting 262, searching 236, linked lists 340, graphs 300, trees 145, DP 58, strings 15, classics 190, race 25. Elements with class `hued` and an inline `--h` recompute the family tokens for themselves (sidebar groups, landing tiles, palette rows).
-- **Data** uses fixed mark colors that carry meaning and never change with the family: compare (amber), move (coral), found (green), sorted, pivot (violet), insert (teal), remove (red), frontier, visited, path.
-- Tints are mixed with `color-mix(in oklab, ...)` so hues do not drift.
+OKLCH tokens in `src/styles/tokens.css`.
+- One accent per theme: gold `oklch(0.83 0.11 85)` in the codex, lake blue `oklch(0.49 0.09 225)` at dawn. It carries buttons, focus, selection, the active tab, and the scrubber.
+- The family hue (`--h`) only colors that family's sigil (sidebar, page header, landing tiles).
+- Mark colors carry meaning in the data and are tuned per theme: compare (ember/amber), move (crimson/rose), found (emerald/sage), sorted (verdigris/teal), pivot (amethyst/lavender), insert and frontier (azure/sky), visited, path (gold/marigold).
+- Tints mix in `oklab` so hues never drift.
 
 ## Type
-Bricolage Grotesque (display: headlines, node labels, big numbers), Geist (interface), Geist Mono (data, code, indexes). All self-hosted through Fontsource.
+Cormorant Garamond (display: headlines, explanations, node labels, big numbers; italic for emphasis), Geist (interface), Geist Mono (data, code, indexes). Self-hosted through Fontsource. The serif is justified by the grimoire brief.
 
-## Shape and depth
-Controls 10px radius, panels 18px, chips and buttons pill. Shadows have an offset and a soft blur. No glow.
+## Surfaces
+Panels are glass: translucent surface, backdrop blur, 1px accent-tinted hairline, soft offset shadow. The stage and hero pages add an inner hairline frame like a page border, and a dotted ruling so bars and boards line up by eye. Data (cells, nodes, charts) sits on solid surfaces so it stays crisp. Under `prefers-reduced-transparency`, glass falls back to solid.
+Controls 12px radius, panels 20px, chips and buttons pill.
 
 ## Motion
-One authored moment: the landing hero settles in. Everything else is functional feedback (bar heights, mark colors, the explanation sentence swapping). All motion stops under `prefers-reduced-motion`.
-
-## Components
-Player dock (sticky), tabbed panels (Explain, Code, Theory, Stats with growth chart, History), input form generated from each algorithm's field list, command palette, race grid, landing tiles that run the real engine.
+- Hero: headline, copy, and pages settle in like drying ink (blur to sharp), once.
+- Scroll: sections reveal as they enter (`data-reveal`, app-wide observer in `ui/reveal.ts`); hero pages drift up on exit (CSS scroll-driven animation); the top bar firms up as the page scrolls (scroll timeline).
+- Scroll-scrub: on the landing page, scrolling through a tall section drives a real insertion sort step by step.
+- Data: array elements slide by identity at a speed tied to playback; explanations ink in on each step.
+All of it stops under `prefers-reduced-motion`; revealed content is never hidden without JavaScript.
 
 ## Charts
-The Complexity Lab and counter timeline use the family hue for the main series and the data colors for input shapes (sorted green, random family hue, reversed coral). Fitted curves are dashed and faint; the compare overlay is a dashed foreground line. The user's own run is a pulsing family-colored dot. Every chart has a text alternative (legend with fitted class, measurement table).
-
-## Arrays
-Elements are slots keyed by identity and positioned with transforms, so swaps slide. Slide time (`--move`) follows playback speed. Bars and array boxes share the same slots and mark colors.
+Complexity Lab and counter timeline use the accent for the main series and data colors for input shapes (sorted green, random accent, reversed crimson). Fitted curves are dashed and faint; the compare overlay is a dashed foreground line; the user's run is a pulsing accent dot. Every chart has a text alternative.

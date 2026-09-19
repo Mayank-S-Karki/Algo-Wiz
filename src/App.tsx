@@ -10,6 +10,8 @@ import { Race } from './ui/Race';
 import { Sidebar } from './ui/Sidebar';
 import { ignoreShortcut } from './ui/keys';
 import { useTheme } from './ui/useTheme';
+import { Backdrop } from './ui/Backdrop';
+import { useRevealRoot } from './ui/reveal';
 
 /** Which page the hash points at. */
 type Route = { page: 'home' } | { page: 'race' } | { page: 'algo'; state: UrlState };
@@ -32,6 +34,7 @@ export function App() {
   const [theme, toggleTheme] = useTheme();
   const [navOpen, setNavOpen] = useState(false);
   const [palette, setPalette] = useState(false);
+  useRevealRoot();
 
   useEffect(() => {
     /** Re-reads the route whenever the hash changes and returns to the top of the page. */
@@ -71,18 +74,20 @@ export function App() {
 
   return (
     <div className="shell">
+      <Backdrop />
       <header className="topbar">
         <button className="icon-btn menu-btn" aria-label="Toggle menu" aria-expanded={navOpen} onClick={() => setNavOpen((o) => !o)}>
           <List size={20} weight="bold" />
         </button>
         <a className="logo" href="#/" aria-label="ALGO-WIZ home">
-          <svg viewBox="0 0 32 32" width="28" height="28" aria-hidden="true">
-            <rect width="32" height="32" rx="9" className="logo-bg" />
-            <rect x="6" y="17" width="5" height="9" rx="1.5" className="logo-bar" />
-            <rect x="13.5" y="9" width="5" height="17" rx="1.5" className="logo-bar hot" />
-            <rect x="21" y="13" width="5" height="13" rx="1.5" className="logo-bar" />
+          <svg viewBox="0 0 32 32" width="30" height="30" aria-hidden="true" className="logo-mark">
+            <circle cx="16" cy="16" r="14.5" className="logo-ring" />
+            <circle cx="16" cy="16" r="11.5" className="logo-ring thin" />
+            <rect x="9.5" y="16" width="3.4" height="7" rx="1" className="logo-bar" />
+            <rect x="14.3" y="9" width="3.4" height="14" rx="1" className="logo-bar hot" />
+            <rect x="19.1" y="13" width="3.4" height="10" rx="1" className="logo-bar" />
           </svg>
-          <span>algo<b>wiz</b></span>
+          <span>Algo<em>Wiz</em></span>
         </a>
         <nav className="top-links" aria-label="Site">
           <a href="#/race" aria-current={route.page === 'race' ? 'page' : undefined}><Trophy size={16} weight="bold" /> Race</a>

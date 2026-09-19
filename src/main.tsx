@@ -1,7 +1,8 @@
 /** Entry point: loads self-hosted fonts and styles, then mounts the app. */
 import '@fontsource-variable/geist';
 import '@fontsource-variable/geist-mono';
-import '@fontsource-variable/bricolage-grotesque';
+import '@fontsource-variable/cormorant-garamond';
+import '@fontsource-variable/cormorant-garamond/wght-italic.css';
 import './styles/tokens.css';
 import './styles/base.css';
 import './styles/shell.css';
