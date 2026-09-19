@@ -116,6 +116,7 @@ export class SearchTracer {
   /** Recorded steps, in order. */
   readonly steps: Step<SearchState>[] = [];
   private stats = { comparisons: 0 };
+  private shown: number[];
 
   /**
    * Starts a recording and pushes the initial step.
@@ -123,10 +124,19 @@ export class SearchTracer {
    * @param target - value to find
    */
   constructor(
-    private readonly array: number[],
+    array: number[],
     private readonly target: number,
   ) {
+    this.shown = array;
     this.snap([], 0, `Search for ${target} in ${array.length} element${array.length === 1 ? '' : 's'}.`, null);
+  }
+
+  /**
+   * Swaps the array drawn in later frames (sentinel search temporarily overwrites the last cell).
+   * @param array - array to show and probe from now on; never mutated
+   */
+  setArray(array: number[]): void {
+    this.shown = array;
   }
 
   /**
@@ -138,7 +148,7 @@ export class SearchTracer {
    */
   snap(marks: Mark[], line: number | null, explain: string, result: number | null = null): void {
     this.steps.push({
-      state: { array: this.array, target: this.target, result },
+      state: { array: this.shown, target: this.target, result },
       marks,
       line,
       explain,
@@ -152,7 +162,7 @@ export class SearchTracer {
    */
   probe(index: number, line: number | null, extra: Mark[] = [], label?: string): number {
     this.stats.comparisons++;
-    const v = this.array[index];
+    const v = this.shown[index];
     const rel = v === this.target ? 'equals' : v < this.target ? 'is less than' : 'is greater than';
     this.snap(
       [...extra, { kind: 'compare', index, label }],

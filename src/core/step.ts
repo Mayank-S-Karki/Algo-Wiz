@@ -86,6 +86,8 @@ export interface InputSpec {
   defaultSize: number;
   /** When true the shell sorts the array before running (binary search and friends). */
   needsSorted?: boolean;
+  /** Extra numeric fields the input panel must show (linked lists: `value` and/or `index`). */
+  fields?: Array<'value' | 'index'>;
 }
 
 /** Definition of one algorithm; exactly one is exported per algorithm file. */
@@ -96,6 +98,8 @@ export interface AlgorithmDef<I = unknown, S = unknown> {
   name: string;
   /** Family used for sidebar grouping. */
   family: Family;
+  /** Optional sub-group inside the family, e.g. "Singly linked list". */
+  group?: string;
   /** One-sentence description. */
   summary: string;
   /** Asymptotic complexity. */
@@ -158,9 +162,8 @@ export interface ListState {
 /** Input to every linked-list algorithm. */
 export interface ListInput {
   list: number[];
-  op: ListOp;
   /** Value used by insert and search. */
   value: number;
-  /** Position used by insert_pos and delete_pos. */
+  /** Position used by positional insert and delete. */
   index: number;
 }
