@@ -79,7 +79,7 @@ export const avlInsertDef = defineTree({
   summary: 'A BST that rebalances with rotations after every insert so its height stays O(log n).',
   complexity: { best: 'O(log n)', average: 'O(log n)', worst: 'O(log n)', space: 'O(1)' },
   pseudocode: PSEUDO,
-  input: keysInput(AVL_KEYS, 5, 'Key to insert'),
+  input: keysInput(AVL_KEYS, 5, 'Key to insert', 'new'),
   run(input) {
     const t = new BinTree(['comparisons', 'rotations'], { balance: true });
     build(t, nums(input, 'keys'), avlInsert);

@@ -1,6 +1,7 @@
 /** Shared tree plumbing: a parent-linked binary node, a recorder with silent mode, and form helpers. */
 import { mulberry32 } from '../../core/random';
-import type { AlgorithmDef, Complexity, FieldSpec, FormInput, Mark, Step, TreeNode, TreeState } from '../../core/step';
+import type { AlgorithmDef, Complexity, FieldSpec, FormInput, Mark, ScaleSpec, Step, TreeNode, TreeState } from '../../core/step';
+import { shape, spread } from '../../core/scale';
 import { Rec } from '../../core/tracer';
 import { theoryFor } from '../theory';
 
@@ -52,6 +53,8 @@ export class BinTree {
     readonly show: ShowOpts = {},
   ) {
     this.rec = new Rec<TreeState>(counters);
+    // Insert, search, delete, and rebalancing here are iterative: constant extra memory unless a caller adds more.
+    this.rec.raise('memory', 0);
   }
 
   /** The recorded steps. */
@@ -166,9 +169,10 @@ export const MAX_KEYS = 14;
  * @param keys - default starting keys
  * @param value - default value for the operation, or null for no value field
  * @param valueLabel - label of the value field
- * @returns form and random generator
+ * @param valueMode - what the Complexity Lab uses as the value: a key not yet in the tree, or an existing key
+ * @returns form, random generator, and scaling recipe
  */
-export function keysInput(keys: string, value: number | null, valueLabel = 'Value'): { form: FieldSpec[]; randomize: (seed: number) => Record<string, string> } {
+export function keysInput(keys: string, value: number | null, valueLabel = 'Value', valueMode: 'new' | 'existing' = 'existing'): { form: FieldSpec[]; randomize: (seed: number) => Record<string, string>; scale: ScaleSpec<FormInput> } {
   const form: FieldSpec[] = [{ key: 'keys', label: 'Starting keys', type: 'numbers', default: keys, max: MAX_KEYS, help: 'Inserted one by one, in this order, before the operation. Duplicates are ignored.' }];
   if (value !== null) form.push({ key: 'value', label: valueLabel, type: 'int', default: value });
   return {
@@ -181,6 +185,23 @@ export function keysInput(keys: string, value: number | null, valueLabel = 'Valu
       // Half the time operate on an existing key, half on a new one.
       const v = rnd() < 0.5 ? picked[Math.floor(rnd() * n)] : pool[Math.floor(rnd() * pool.length)];
       return { keys: picked.join(', '), value: String(v) };
+    },
+    scale: {
+      sizes: spread(1, MAX_KEYS),
+      unit: 'keys',
+      shapes: [shape('random', 'Keys in random order', 3), shape('sorted', 'Keys in sorted order')],
+      make: (n, s, seed) => {
+        const keys = Array.from({ length: n }, (_, i) => 10 * (i + 1));
+        const rnd = mulberry32(seed * 131 + n);
+        if (s === 'random') for (let i = n - 1; i > 0; i--) {
+          const j = Math.floor(rnd() * (i + 1));
+          [keys[i], keys[j]] = [keys[j], keys[i]];
+        }
+        // The deepest key of a sorted insert order is the largest one.
+        const v = valueMode === 'new' ? (s === 'sorted' ? 10 * (n + 1) : 10 * Math.floor(rnd() * (n + 1)) + 5) : s === 'sorted' ? 10 * n : keys[Math.floor(rnd() * n)];
+        return { keys, value: v };
+      },
+      sizeOf: (i) => new Set(i.keys as number[]).size,
     },
   };
 }
@@ -214,5 +235,6 @@ export function defineTree(s: TreeSpec): AlgorithmDef<FormInput, TreeState> {
     input: { kind: 'form', maxSize: 100, defaultSize: 0, form: s.input.form, randomize: s.input.randomize },
     run: s.run,
     view: 'tree',
+    scale: s.input.scale,
   };
 }

@@ -25,12 +25,14 @@ export const graphBfs = defineGraph({
     const seen = Array(g.n).fill(false);
     const dist = Array(g.n).fill(0);
     const q = [s];
+    r.alloc(2 * g.n + 1);
     seen[s] = true;
     r.kinds[s] = 'frontier';
     r.sub[s] = 'd=0';
     r.snap(0, `Start at ${L(s)}: put it in the queue.`);
     while (q.length) {
       const u = q.shift() as number;
+      r.free(1);
       r.kinds[u] = 'active';
       r.snap(2, `Take ${L(u)} from the front of the queue.`);
       for (const { to: v } of g.adj[u]) {
@@ -42,6 +44,7 @@ export const graphBfs = defineGraph({
           r.sub[v] = `d=${dist[v]}`;
           r.edge(u, v, 'path');
           q.push(v);
+          r.alloc(1);
           r.snap(4, `${L(v)} is new: its distance is ${dist[v]}. Add it to the queue.`);
         } else r.flash(u, v, 'compare', 4, `${L(v)} was already seen: skip it.`);
       }
@@ -75,6 +78,7 @@ export const graphDfs = defineGraph({
     let time = 0;
     /** Visits u and everything reachable from it that is still unvisited. */
     const dfs = (u: number): void => {
+      r.enter();
       seen[u] = true;
       r.kinds[u] = 'active';
       r.sub[u] = `#${++time}`;
@@ -92,7 +96,9 @@ export const graphDfs = defineGraph({
       }
       r.kinds[u] = 'visited';
       r.snap(3, `${L(u)} is finished.`);
+      r.leave();
     };
+    r.alloc(g.n);
     r.snap(0, `Start the search at ${L(g.source)}.`);
     dfs(g.source);
     r.snap(3, `Done: reached ${seen.filter(Boolean).length} of ${g.n} nodes.`);
@@ -119,6 +125,7 @@ export const connectedComponents = defineGraph({
     const r = new GraphRec(g, ['components', 'visited']);
     const comp = Array(g.n).fill(0);
     let c = 0;
+    r.alloc(g.n);
     r.snap(0, 'No node has a component yet.');
     for (let s = 0; s < g.n; s++) {
       if (comp[s]) continue;
@@ -126,15 +133,18 @@ export const connectedComponents = defineGraph({
       r.raise('components', c);
       comp[s] = c;
       const q = [s];
+      r.alloc(1);
       r.kinds[s] = 'active';
       r.sub[s] = `C${c}`;
       r.snap(2, `${L(s)} is unassigned: it starts component ${c}.`);
       while (q.length) {
         const u = q.shift() as number;
+        r.free(1);
         for (const { to: v } of g.adj[u]) {
           if (comp[v]) continue;
           comp[v] = c;
           q.push(v);
+          r.alloc(1);
           r.kinds[v] = 'frontier';
           r.sub[v] = `C${c}`;
           r.edge(u, v, 'path');

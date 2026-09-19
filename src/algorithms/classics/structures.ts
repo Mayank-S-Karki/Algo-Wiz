@@ -1,6 +1,7 @@
 import { InputError, str } from '../../core/forms';
 import type { Mark } from '../../core/step';
 import { Table } from '../../core/table';
+import { shape, spread } from '../../core/scale';
 import { defineForm } from '../define';
 
 /** Slots drawn for a stack, queue, or deque. */
@@ -56,6 +57,17 @@ function structure(opts: {
     complexity: { best: 'O(1)', average: 'O(1)', worst: 'O(1)', space: 'O(n)' },
     pseudocode: opts.pseudocode,
     form: [{ key: 'ops', label: 'Operations', type: 'text', default: opts.ops, help: opts.help, maxLength: 120 }],
+    scale: {
+      sizes: spread(2, 16),
+      unit: 'operations',
+      shapes: [shape('fill', 'Add n/2 items, then remove them')],
+      make: (n) => {
+        const [add, remove] = [opts.withValue[opts.withValue.length - 1], opts.noValue[0]];
+        const half = Math.min(Math.floor(n / 2), CAP);
+        return { ops: [...Array.from({ length: half }, (_, i) => `${add} ${i + 1}`), ...Array.from({ length: n - half }, () => remove)].join(', ') };
+      },
+      sizeOf: (i) => str(i, 'ops').split(',').length,
+    },
     randomize: (seed) => ({ ops: opts.ops.split(', ').slice(seed % 3).concat(opts.ops.split(', ').slice(0, seed % 3)).join(', ') }),
     view: 'cells',
     run(input) {
@@ -74,6 +86,7 @@ function structure(opts: {
         const r = opts.apply(items, op);
         t.rec.count('operations');
         t.rec.raise('peak size', items.length);
+        t.rec.raise('memory', items.length);
         sync();
         frame(r.index === null ? [] : [{ kind: r.kind, index: r.index }], r.line, r.explain);
       }

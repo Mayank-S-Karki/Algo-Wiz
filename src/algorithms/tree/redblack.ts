@@ -78,7 +78,7 @@ export const rbInsertDef = defineTree({
     '  recolor parent black and grandparent red after the rotation',
     'color the root black',
   ],
-  input: keysInput('10, 20, 30, 15, 25, 5, 1', 40, 'Key to insert'),
+  input: keysInput('10, 20, 30, 15, 25, 5, 1', 40, 'Key to insert', 'new'),
   run(input) {
     const t = new BinTree(['recolors', 'rotations'], { color: true });
     build(t, nums(input, 'keys'), rbInsert);

@@ -57,7 +57,7 @@ export const bstInsertDef = defineTree({
   summary: 'Walks down from the root, going left for smaller keys and right for larger, until it finds an empty spot.',
   complexity: { best: 'O(log n)', average: 'O(log n)', worst: 'O(n)', space: 'O(1)' },
   pseudocode: ['node = root', 'if key == node.key: stop (already present)', 'if key < node.key: node = node.left', 'else: node = node.right', 'when the child is empty: attach the new node there'],
-  input: keysInput(KEYS, 45, 'Key to insert'),
+  input: keysInput(KEYS, 45, 'Key to insert', 'new'),
   run(input) {
     const t = new BinTree(['comparisons']);
     build(t, nums(input, 'keys'), bstInsert);

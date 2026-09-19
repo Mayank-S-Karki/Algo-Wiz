@@ -23,6 +23,7 @@ export const bucketSort = defineSort({
     const max = Math.max(...t.a);
     const width = (max - min + 1) / k;
     const buckets: number[][] = Array.from({ length: k }, () => []);
+    t.alloc(n + k);
     t.a.forEach((v, i) => {
       const b = Math.min(k - 1, Math.floor((v - min) / width));
       buckets[b].push(v);

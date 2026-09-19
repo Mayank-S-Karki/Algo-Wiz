@@ -22,12 +22,14 @@ export const mergeSort = defineSort({
     /** Sorts a[lo..hi] recursively. */
     const sort = (lo: number, hi: number): void => {
       if (lo >= hi) return;
+      t.enter();
       const mid = (lo + hi) >> 1;
       t.note(windowMarks(lo, hi), 2, `Split indices ${lo}..${hi} at ${mid}.`);
       sort(lo, mid);
       sort(mid + 1, hi);
       t.note(windowMarks(lo, hi), 3, `Merge the sorted halves ${lo}..${mid} and ${mid + 1}..${hi}.`);
       mergeRange(t, lo, mid, hi, 4, 5);
+      t.leave();
     };
     sort(0, t.a.length - 1);
     return t.finish(3);

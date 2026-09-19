@@ -8,6 +8,7 @@ import './styles/shell.css';
 import './styles/page.css';
 import './styles/views.css';
 import './styles/landing.css';
+import './styles/lab.css';
 import { StrictMode } from 'react';
 import { createRoot } from 'react-dom/client';
 import { App } from './App';

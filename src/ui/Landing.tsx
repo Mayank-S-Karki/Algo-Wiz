@@ -7,6 +7,7 @@ import { FAMILIES } from './family';
 import { defaultInput } from './inputs';
 import { MiniStage } from './MiniStage';
 import { usePlayer } from './usePlayer';
+import { LabTeaser } from './lab/LabTeaser';
 
 /** Order of the family tiles; chosen so each bento row fills its 12 columns. */
 const TILE_ORDER = ['sorting', 'searching', 'graph', 'tree', 'linkedlist', 'dp', 'strings', 'classics'];
@@ -119,6 +120,8 @@ export function Landing() {
           })}
         </div>
       </section>
+
+      <LabTeaser />
 
       <section className="player-demo">
         <div className="pd-copy">

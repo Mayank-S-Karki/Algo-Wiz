@@ -28,7 +28,16 @@ input, textarea { caret-color: var(--fam); }
 * { scrollbar-width: thin; scrollbar-color: var(--line-strong) transparent; }
 ::-webkit-scrollbar { width: 10px; height: 10px; }
 ::-webkit-scrollbar-thumb { background: var(--line-strong); border-radius: 999px; border: 2px solid transparent; background-clip: content-box; }
-input[type='range'] { accent-color: var(--fam); }
+/* Range sliders: a filled track up to the thumb. Components set --p (0-100%) for the fill. */
+input[type='range'] { -webkit-appearance: none; appearance: none; height: 22px; background: transparent; cursor: pointer; }
+input[type='range']::-webkit-slider-runnable-track { height: 6px; border-radius: 6px; background: linear-gradient(90deg, var(--fam) var(--p, 50%), var(--line-strong) var(--p, 50%)); }
+input[type='range']::-moz-range-track { height: 6px; border-radius: 6px; background: var(--line-strong); }
+input[type='range']::-moz-range-progress { height: 6px; border-radius: 6px; background: var(--fam); }
+input[type='range']::-webkit-slider-thumb { -webkit-appearance: none; width: 18px; height: 18px; margin-top: -6px; border-radius: 999px; background: var(--surface); border: 3px solid var(--fam); box-shadow: 0 2px 6px oklch(0.2 0.05 268 / 0.35); transition: transform 0.15s var(--ease); }
+input[type='range']::-moz-range-thumb { width: 14px; height: 14px; border-radius: 999px; background: var(--surface); border: 3px solid var(--fam); }
+input[type='range']:active::-webkit-slider-thumb { transform: scale(1.18); }
+input[type='range']:focus-visible { outline: none; }
+input[type='range']:focus-visible::-webkit-slider-thumb { box-shadow: 0 0 0 5px var(--fam-soft); }
 input[type='search']::-webkit-search-cancel-button { display: none; }
 
 @media (prefers-reduced-motion: reduce) {

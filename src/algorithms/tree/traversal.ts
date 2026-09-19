@@ -34,20 +34,24 @@ function traversal(order: Order, name: string, summary: string, pseudocode: stri
       /** Recursive depth-first traversal. */
       const walk = (n: TNode | null): void => {
         if (!n) return;
+        t.rec.enter();
         t.snap(marks([{ kind: 'pointer', index: n.uid }]), 0, `Arrive at ${n.key}.`);
         if (order === 'pre') visit(n, 1);
         walk(n.left);
         if (order === 'in') visit(n, 2);
         walk(n.right);
         if (order === 'post') visit(n, 3);
+        t.rec.leave();
       };
       if (order === 'level') {
         const q = t.root ? [t.root] : [];
+        t.rec.alloc(q.length);
         while (q.length) {
           const n = q.shift() as TNode;
+          t.rec.free(1);
           visit(n, 2);
-          if (n.left) q.push(n.left);
-          if (n.right) q.push(n.right);
+          if (n.left) (q.push(n.left), t.rec.alloc(1));
+          if (n.right) (q.push(n.right), t.rec.alloc(1));
           t.snap(marks(q.map((x) => ({ kind: 'frontier' as const, index: x.uid }))), 3, `Queue the children of ${n.key}. Waiting: ${q.map((x) => x.key).join(', ') || 'nobody'}.`);
         }
       } else walk(t.root);

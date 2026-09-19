@@ -8,6 +8,10 @@ import { BarsView } from '../views/BarsView';
 import { PlayerDock } from './PlayerDock';
 import { useShortcuts } from './useShortcuts';
 import { usePlayer } from './usePlayer';
+import { trackIds } from '../core/identity';
+import { stepDelayMs } from '../core/player';
+import { useArrayMode } from './useArrayMode';
+import { ChartBar, SquaresFour } from '@phosphor-icons/react';
 
 /** Sorts that fit a race: everything except bogo sort, which cannot handle more than five elements. */
 const RACERS = SORTING.filter((d) => d.id !== 'bogo-sort');
@@ -31,11 +35,12 @@ export function Race() {
   const [size, setSize] = useState(18);
   const [seed, setSeed] = useState(4);
   const data = useMemo(() => makeArray(preset, size, seed), [preset, size, seed]);
-  const runs = useMemo(() => ids.map((id) => ({ def: RACERS.find((d) => d.id === id)!, steps: RACERS.find((d) => d.id === id)!.run(data) as Step<ArrayState>[] })), [ids, data]);
+  const runs = useMemo(() => ids.map((id) => ({ def: RACERS.find((d) => d.id === id)!, steps: RACERS.find((d) => d.id === id)!.run(data) as Step<ArrayState>[] })).map((r) => ({ ...r, idTrack: trackIds(r.steps.map((s) => s.state.array)) })), [ids, data]);
   const longest = Math.max(...runs.map((r) => r.steps.length));
   const player = usePlayer(longest);
   useShortcuts(player);
   const { first } = player;
+  const [arrayMode, setArrayMode] = useArrayMode();
 
   /** Adds or removes an algorithm from the race and restarts it. */
   const toggle = (id: string) => {
@@ -73,7 +78,7 @@ export function Race() {
           <div className="input-actions">
             <label className="size">
               <span>Size {size}</span>
-              <input type="range" min={6} max={40} value={size} onChange={(e) => regenerate(preset, Number(e.target.value), seed)} />
+              <input type="range" min={6} max={40} value={size} style={{ ['--p' as string]: `${(100 * ((size) - (6))) / Math.max((40) - (6), 1)}%` }} onChange={(e) => regenerate(preset, Number(e.target.value), seed)} />
             </label>
             <div className="presets" role="group" aria-label="Data shape">
               {PRESETS.map((p) => (
@@ -86,8 +91,18 @@ export function Race() {
           </div>
         </section>
 
-        <div className="race-grid" data-count={runs.length}>
-          {runs.map(({ def, steps }) => {
+        <div className="race-bar">
+          <div className="seg seg-sm" role="radiogroup" aria-label="Draw the arrays as">
+            <button role="radio" aria-checked={arrayMode === 'bars'} data-on={arrayMode === 'bars'} onClick={() => setArrayMode('bars')}>
+              <ChartBar size={15} weight="bold" aria-hidden="true" /> Bars
+            </button>
+            <button role="radio" aria-checked={arrayMode === 'cells'} data-on={arrayMode === 'cells'} onClick={() => setArrayMode('cells')}>
+              <SquaresFour size={15} weight="bold" aria-hidden="true" /> Array
+            </button>
+          </div>
+        </div>
+        <div className="race-grid" data-count={runs.length} style={{ ['--move' as string]: `${Math.round(Math.min(340, Math.max(70, stepDelayMs(player.speed) * 0.85)))}ms` }}>
+          {runs.map(({ def, steps, idTrack }) => {
             const i = Math.min(player.index, steps.length - 1);
             const step = steps[i];
             const done = i >= steps.length - 1;
@@ -98,7 +113,7 @@ export function Race() {
                   <h2>{def.name.replace(' (simplified)', '')}</h2>
                   {done ? <span className="finish">Finished #{place} in {steps.length} steps</span> : <span className="dim">Step {i + 1}</span>}
                 </header>
-                <BarsView array={step.state.array} marks={step.marks} />
+                <BarsView array={step.state.array} marks={step.marks} ids={idTrack[i]} mode={arrayMode} />
                 <dl className="racer-stats">
                   {Object.entries(step.stats).map(([k, v]) => (
                     <div key={k}><dt>{k}</dt><dd>{v}</dd></div>

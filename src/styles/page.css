@@ -4,7 +4,7 @@
 
 /* Header */
 .page-head { display: grid; grid-template-columns: auto minmax(0, 1fr); gap: 4px 18px; align-items: center; }
-.fam-tile { grid-row: span 1; display: grid; place-items: center; width: 60px; height: 60px; border-radius: 16px; background: var(--fam-soft); color: var(--fam); border: 1px solid color-mix(in oklab, var(--fam) 30%, transparent); }
+.fam-tile { grid-row: span 1; display: grid; place-items: center; width: 60px; height: 60px; border-radius: 18px; background: linear-gradient(145deg, color-mix(in oklab, var(--fam) 30%, var(--surface)), var(--fam-soft)); color: var(--fam); border: 1px solid color-mix(in oklab, var(--fam) 35%, transparent); box-shadow: 0 10px 24px -14px var(--fam); }
 .head-text h1 { font-size: clamp(30px, 4vw, 46px); font-weight: 750; letter-spacing: -0.035em; line-height: 1.02; }
 .head-sub { margin-top: 8px; color: var(--muted); max-width: 68ch; }
 .chips { grid-column: 1 / -1; display: flex; flex-wrap: wrap; gap: 8px; margin-top: 4px; }
@@ -52,16 +52,17 @@ select.text-input { font-family: var(--font-sans); }
   display: flex; flex-direction: column; gap: 14px; padding: 18px 20px 16px; min-height: 440px;
   border: 1px solid var(--line-strong); border-radius: var(--r-panel); box-shadow: var(--shadow);
   background-color: var(--bg-2);
-  background-image: linear-gradient(var(--grid) 1px, transparent 1px), linear-gradient(90deg, var(--grid) 1px, transparent 1px);
-  background-size: 30px 30px; background-position: -1px -1px;
+  background-image: radial-gradient(90% 55% at 50% 0%, var(--fam-soft), transparent 70%), linear-gradient(var(--grid) 1px, transparent 1px), linear-gradient(90deg, var(--grid) 1px, transparent 1px);
+  background-size: 100% 100%, 30px 30px, 30px 30px; background-position: 0 0, -1px -1px, -1px -1px;
 }
 .stage-head { display: flex; align-items: center; flex-wrap: wrap; gap: 10px; }
+.stage-head .seg { background: var(--surface); }
 .step-count { font-family: var(--font-mono); font-size: 13px; color: var(--muted); padding: 3px 10px; border-radius: 999px; background: var(--surface); border: 1px solid var(--line); }
 .step-badge { display: inline-flex; align-items: center; gap: 8px; padding: 3px 12px 3px 9px; border-radius: 999px; background: var(--surface); border: 1px solid var(--line-strong); font-size: 13px; font-weight: 600; }
 .step-badge i { width: 10px; height: 10px; border-radius: 999px; background: var(--mk, var(--faint)); }
 .target-pill { padding: 3px 12px; border-radius: 999px; font-size: 13px; font-weight: 600; font-family: var(--font-mono); background: var(--fam-soft); color: var(--fam); }
 .explain {
-  padding: 14px 18px; border-radius: 14px; background: var(--surface); border: 1px solid var(--line);
+  padding: 14px 18px; border-radius: 14px; background: color-mix(in oklab, var(--surface) 92%, transparent); border: 1px solid var(--line); box-shadow: 0 8px 24px -18px oklch(0.2 0.05 268 / 0.6); backdrop-filter: blur(4px);
   font-size: clamp(16px, 1.5vw, 19px); line-height: 1.4; min-height: 3.6em; font-weight: 500; letter-spacing: -0.01em; text-wrap: pretty;
   animation: swap-in 0.22s var(--ease);
 }
@@ -86,7 +87,7 @@ select.text-input { font-family: var(--font-sans); }
 .dock-buttons, .dock-toggles { display: flex; align-items: center; gap: 4px; }
 .play-btn {
   display: inline-flex; align-items: center; justify-content: center; gap: 8px; height: 44px; min-width: 112px; padding: 0 20px; margin: 0 6px; border: 0; border-radius: 999px;
-  background: var(--fam); color: var(--fam-ink); font-weight: 700;
+  background: linear-gradient(180deg, color-mix(in oklab, var(--fam) 100%, white 12%), var(--fam)); color: var(--fam-ink); font-weight: 700; box-shadow: 0 8px 18px -10px var(--fam), 0 1px 0 oklch(1 0 0 / 0.25) inset;
   transition: transform 0.15s var(--ease), background 0.2s ease;
 }
 .play-btn:hover { background: var(--fam-strong); }
@@ -99,11 +100,11 @@ select.text-input { font-family: var(--font-sans); }
 .speed output { font-family: var(--font-mono); color: var(--text); min-width: 40px; }
 
 /* Panels */
-.panels { display: flex; flex-direction: column; border: 1px solid var(--line-strong); border-radius: var(--r-panel); background: var(--surface); min-height: 380px; max-height: 72dvh; overflow: hidden; box-shadow: var(--shadow); }
-.tabs { display: flex; gap: 2px; padding: 8px; border-bottom: 1px solid var(--line); overflow-x: auto; }
+.panels { display: flex; flex-direction: column; border: 1px solid var(--line-strong); border-radius: var(--r-panel); background: linear-gradient(180deg, var(--surface), color-mix(in oklab, var(--surface) 70%, var(--bg-2))); min-height: 380px; max-height: 72dvh; overflow: hidden; box-shadow: var(--shadow); }
+.tabs { flex: none; display: flex; gap: 2px; margin: 10px 10px 0; padding: 4px; border-radius: 14px; background: var(--bg-2); border: 1px solid var(--line); overflow-x: auto; }
 .tabs button { flex: 1; padding: 9px 12px; border: 0; border-radius: var(--r-ctl); background: transparent; color: var(--muted); font-size: 14px; font-weight: 500; white-space: nowrap; transition: background 0.2s ease, color 0.2s ease; }
 .tabs button:hover { color: var(--text); background: var(--surface-2); }
-.tabs button[aria-selected='true'] { background: var(--fam-soft); color: var(--fam); font-weight: 700; }
+.tabs button[aria-selected='true'] { background: var(--surface); color: var(--fam); font-weight: 700; box-shadow: 0 1px 2px oklch(0.2 0.04 268 / 0.25), 0 0 0 1px var(--line); }
 .panel-body { padding: 18px; overflow-y: auto; flex: 1; }
 .stack { display: flex; flex-direction: column; gap: 20px; }
 .panel-body h3 { font-size: 12px; font-weight: 600; letter-spacing: 0.06em; text-transform: uppercase; color: var(--faint); margin-bottom: 8px; }
@@ -189,3 +190,7 @@ select.text-input { font-family: var(--font-sans); }
   .dock { order: 2; }
   .inputs { order: 3; }
 }
+
+/* Below the two-column layout the panel sits in the page flow, so it should not scroll on its own. */
+@media (max-width: 1279px) { .panels { max-height: none; } }
+@media (max-width: 640px) { .tabs button { padding: 8px 8px; font-size: 13px; } }

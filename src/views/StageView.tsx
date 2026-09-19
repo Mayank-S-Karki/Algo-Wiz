@@ -8,6 +8,7 @@ import { HanoiView } from './HanoiView';
 import { ListView } from './ListView';
 import { TextView } from './TextView';
 import { TreeView } from './TreeView';
+import type { ArrayMode } from '../ui/useArrayMode';
 
 /** Props for {@link StageView}. */
 interface StageViewProps {
@@ -15,18 +16,22 @@ interface StageViewProps {
   step: Step<any>;
   /** Pathfinding boards call this when a cell is clicked. */
   onToggleCell?: (index: number) => void;
+  /** Stable element ids for array views, so moved elements slide. */
+  ids?: number[];
+  /** Bars or boxes for array views. */
+  arrayMode?: ArrayMode;
 }
 
 /**
  * Renders one step with the view named by `def.view`.
  * @param props - algorithm, step, and optional board editing callback
  */
-export function StageView({ def, step, onToggleCell }: StageViewProps) {
+export function StageView({ def, step, onToggleCell, ids, arrayMode }: StageViewProps) {
   const { state, marks } = step;
   switch (def.view) {
     case 'bars': {
       const s = state as ArrayState | SearchState;
-      return <BarsView array={s.array} marks={marks} target={'target' in s ? s.target : undefined} />;
+      return <BarsView array={s.array} marks={marks} target={'target' in s ? s.target : undefined} ids={ids} mode={arrayMode} />;
     }
     case 'list':
       return <ListView nodes={(state as ListState).nodes} kind={(state as ListState).kind} marks={marks} />;

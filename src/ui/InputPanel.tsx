@@ -77,7 +77,7 @@ export function InputPanel(p: InputPanelProps) {
         {legacy && (
           <label className="size">
             <span>Size {p.size}</span>
-            <input type="range" min={isList ? 0 : 3} max={input.maxSize} value={p.size} onChange={(e) => p.onSize(Number(e.target.value))} />
+            <input type="range" min={isList ? 0 : 3} max={input.maxSize} value={p.size} style={{ ['--p' as string]: `${(100 * ((p.size) - (isList ? 0 : 3))) / Math.max((input.maxSize) - (isList ? 0 : 3), 1)}%` }} onChange={(e) => p.onSize(Number(e.target.value))} />
           </label>
         )}
         <div className="presets" role="group" aria-label="Generate data">

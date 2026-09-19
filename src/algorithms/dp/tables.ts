@@ -1,4 +1,5 @@
 import { InputError, int, nums, str } from '../../core/forms';
+import { shape, spread } from '../../core/scale';
 import { mulberry32 } from '../../core/random';
 import { Table, cellMark } from '../../core/table';
 import { defineForm } from '../define';
@@ -25,6 +26,7 @@ export const knapsack = defineForm({
     const n = 4 + (seed % 2);
     return { weights: Array.from({ length: n }, () => 1 + Math.floor(r() * 6)).join(', '), values: Array.from({ length: n }, () => 1 + Math.floor(r() * 9)).join(', '), cap: String(7 + (seed % 5)) };
   },
+  scale: { sizes: spread(1, 6, 6), unit: 'items', shapes: [shape('random', 'Random items, capacity 10', 3)], make: (n, _s, seed) => { const r = rnd(seed + n); return { weights: Array.from({ length: n }, () => 1 + Math.floor(r() * 6)), values: Array.from({ length: n }, () => 1 + Math.floor(r() * 9)), cap: 10 }; }, sizeOf: (i) => nums(i, 'weights').length },
   view: 'cells',
   run(input) {
     const w = nums(input, 'weights');
@@ -34,6 +36,7 @@ export const knapsack = defineForm({
     if (w.some((x) => x < 1)) throw new InputError('Weights must be positive.');
     const n = w.length;
     const t = new Table(n + 1, cap + 1, ['cells filled'], ['none', ...w.map((x, i) => `item ${i + 1} (w${x}, v${v[i]})`)], Array.from({ length: cap + 1 }, (_, i) => String(i)));
+    t.rec.alloc((n + 1) * (cap + 1));
     t.snap([], 0, 'Row 0 (no items) is 0 for every capacity.');
     for (let c = 0; c <= cap; c++) t.set(0, c, 0);
     for (let i = 1; i <= n; i++) {
@@ -82,6 +85,7 @@ export const lcs = defineForm({
     const word = (n: number) => Array.from({ length: n }, () => 'ABCD'[Math.floor(r() * 4)]).join('');
     return { a: word(6 + (seed % 3)), b: word(6 + ((seed + 1) % 3)) };
   },
+  scale: { sizes: spread(1, 10), unit: 'letters', shapes: [shape('random', 'Random strings of equal length', 3)], make: (n, _s, seed) => { const r = rnd(seed + n); const w = () => Array.from({ length: n }, () => 'ABCD'[Math.floor(r() * 4)]).join(''); return { a: w(), b: w() }; }, sizeOf: (i) => str(i, 'a').length },
   view: 'cells',
   run(input) {
     const a = str(input, 'a');
@@ -89,6 +93,7 @@ export const lcs = defineForm({
     const t = new Table(a.length + 1, b.length + 1, ['cells filled'], ['', ...a], ['', ...b]);
     for (let i = 0; i <= a.length; i++) t.set(i, 0, 0);
     for (let j = 0; j <= b.length; j++) t.set(0, j, 0);
+    t.rec.alloc((a.length + 1) * (b.length + 1));
     t.snap([], 0, 'The first row and column are 0: an empty string has nothing in common.');
     for (let i = 1; i <= a.length; i++)
       for (let j = 1; j <= b.length; j++) {
@@ -134,6 +139,7 @@ export const editDistance = defineForm({
     const [a, b] = pairs[seed % pairs.length];
     return { a, b };
   },
+  scale: { sizes: spread(1, 10), unit: 'letters', shapes: [shape('random', 'Random strings of equal length', 3)], make: (n, _s, seed) => { const r = rnd(seed + n); const w = () => Array.from({ length: n }, () => 'abcd'[Math.floor(r() * 4)]).join(''); return { a: w(), b: w() }; }, sizeOf: (i) => str(i, 'a').length },
   view: 'cells',
   run(input) {
     const a = str(input, 'a');
@@ -141,6 +147,7 @@ export const editDistance = defineForm({
     const t = new Table(a.length + 1, b.length + 1, ['cells filled'], ['', ...a], ['', ...b]);
     for (let i = 0; i <= a.length; i++) t.set(i, 0, i);
     for (let j = 0; j <= b.length; j++) t.set(0, j, j);
+    t.rec.alloc((a.length + 1) * (b.length + 1));
     t.snap([], 0, 'Turning a prefix into an empty string takes one delete per letter; building one from empty takes one insert per letter.');
     for (let i = 1; i <= a.length; i++)
       for (let j = 1; j <= b.length; j++) {
@@ -179,6 +186,7 @@ export const lis = defineForm({
   pseudocode: ['dp[i] = 1 for every i', 'for each i', '  for each j < i', '    if a[j] < a[i] and dp[j] + 1 > dp[i]: dp[i] = dp[j] + 1; prev[i] = j', 'the answer is the largest dp[i]; follow prev to list it'],
   form: [{ key: 'a', label: 'Numbers', type: 'numbers', default: '10, 22, 9, 33, 21, 50, 41, 60', max: 12 }],
   randomize: (seed) => ({ a: Array.from({ length: 9 }, (_, i) => 1 + ((seed * 31 + i * 17) % 40)).join(', ') }),
+  scale: { sizes: spread(1, 12), unit: 'elements', shapes: [shape('random', 'Random numbers', 3)], make: (n, _s, seed) => { const r = rnd(seed + n); return { a: Array.from({ length: n }, () => 1 + Math.floor(r() * 40)) }; }, sizeOf: (i) => nums(i, 'a').length },
   view: 'cells',
   run(input) {
     const a = nums(input, 'a');
@@ -186,6 +194,7 @@ export const lis = defineForm({
     const n = a.length;
     const t = new Table(3, n, ['comparisons'], ['value', 'dp (length ending here)', 'previous'], a.map((_, i) => String(i)));
     a.forEach((x, i) => (t.set(0, i, x), t.set(1, i, 1), t.set(2, i, '-')));
+    t.rec.alloc(2 * n);
     t.snap([], 0, 'Every element alone is an increasing subsequence of length 1.');
     const prev = Array(n).fill(-1);
     for (let i = 1; i < n; i++)
@@ -222,6 +231,7 @@ export const coinChange = defineForm({
     { key: 'amount', label: 'Amount', type: 'int', default: 11, min: 1, max: 24 },
   ],
   randomize: (seed) => ({ coins: [[1, 5, 6], [1, 3, 4], [2, 5, 10], [1, 7, 10]][seed % 4].join(', '), amount: String(10 + (seed % 12)) }),
+  scale: { sizes: spread(1, 24), unit: 'amount', shapes: [shape('coins', 'Coins 1, 5, 6')], make: (n) => ({ coins: [1, 5, 6], amount: n }), sizeOf: (i) => int(i, 'amount') },
   view: 'cells',
   run(input) {
     const coins = nums(input, 'coins');
@@ -230,6 +240,7 @@ export const coinChange = defineForm({
     const t = new Table(1, A + 1, ['cells filled'], ['fewest coins'], Array.from({ length: A + 1 }, (_, i) => String(i)));
     t.set(0, 0, 0);
     for (let a = 1; a <= A; a++) t.set(0, a, '∞');
+    t.rec.alloc(2 * (A + 1));
     t.snap([cellMark(t, 'insert', 0, 0)], 0, 'Zero coins make amount 0. Every other amount starts at infinity.');
     const last = Array(A + 1).fill(0);
     for (let a = 1; a <= A; a++) {
@@ -266,6 +277,7 @@ export const matrixChain = defineForm({
   pseudocode: ['cost[i][i] = 0', 'for chain length L from 2 to n', '  for each start i (end j = i + L - 1)', '    for each split k between i and j', '      cost[i][j] = min(cost[i][k] + cost[k+1][j] + d[i-1]·d[k]·d[j])', 'cost[1][n] is the answer'],
   form: [{ key: 'dims', label: 'Dimensions', type: 'numbers', default: '10, 30, 5, 60', max: 7, help: 'Matrix i is dims[i-1] by dims[i]. Four numbers make three matrices.' }],
   randomize: (seed) => ({ dims: [[10, 30, 5, 60], [40, 20, 30, 10, 30], [5, 10, 3, 12, 5, 50], [30, 35, 15, 5, 10, 20]][seed % 4].join(', ') }),
+  scale: { sizes: spread(2, 6, 5), unit: 'matrices', shapes: [shape('random', 'Random dimensions', 3)], make: (n, _s, seed) => { const r = rnd(seed + n); return { dims: Array.from({ length: n + 1 }, () => 5 + Math.floor(r() * 36)) }; }, sizeOf: (i) => nums(i, 'dims').length - 1 },
   view: 'cells',
   run(input) {
     const d = nums(input, 'dims');
@@ -274,6 +286,7 @@ export const matrixChain = defineForm({
     const label = Array.from({ length: n }, (_, i) => `M${i + 1}`);
     const t = new Table(n, n, ['splits tried'], label, label);
     const split: number[][] = Array.from({ length: n }, () => Array(n).fill(0));
+    t.rec.alloc(2 * n * n);
     for (let i = 0; i < n; i++) t.set(i, i, 0);
     t.snap([], 0, `${n} matrices: ${label.map((m, i) => `${m} is ${d[i]}x${d[i + 1]}`).join(', ')}. A single matrix costs 0.`);
     for (let L = 2; L <= n; L++)

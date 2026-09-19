@@ -5,6 +5,7 @@ import { StageView } from '../views/StageView';
 import { defaultInput } from './inputs';
 import { useInView } from './useInView';
 import { usePlayer } from './usePlayer';
+import { trackIds } from '../core/identity';
 
 /** Props for {@link MiniStage}. */
 interface MiniStageProps {
@@ -26,6 +27,7 @@ interface MiniStageProps {
 export function MiniStage({ id, speed = 3, size, caption = false }: MiniStageProps) {
   const def = REGISTRY.get(id);
   const steps = useMemo(() => (def ? def.run(defaultInput(def, size)) : []), [def, size]);
+  const ids = useMemo(() => (def?.view === 'bars' ? trackIds(steps.map((s) => (s.state as { array: number[] }).array)) : null), [def, steps]);
   const [ref, inView] = useInView<HTMLDivElement>();
   const player = usePlayer(steps.length);
   const { play, pause, setSpeed, setLoop } = player;
@@ -37,8 +39,8 @@ export function MiniStage({ id, speed = 3, size, caption = false }: MiniStagePro
   if (!def || !steps.length) return null;
   const step = steps[player.index];
   return (
-    <div className="mini" ref={ref} aria-hidden="true">
-      <StageView def={def} step={step} />
+    <div className="mini" ref={ref} aria-hidden="true" style={{ ['--move' as string]: `${Math.round(Math.min(300, 700 / speed))}ms` }}>
+      <StageView def={def} step={step} ids={ids?.[player.index]} />
       {caption && <p className="mini-caption">{step.explain}</p>}
     </div>
   );

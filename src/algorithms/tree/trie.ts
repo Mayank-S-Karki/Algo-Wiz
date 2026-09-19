@@ -17,7 +17,7 @@ class Trie {
   root = new TrieNode(0);
   silent = true;
   private next = 1;
-  readonly rec = new Rec<TreeState>(['letters checked']);
+  readonly rec = new Rec<TreeState>(['letters checked', 'memory']);
 
   /** Draws the trie. Children are ordered alphabetically. */
   state(): TreeState {

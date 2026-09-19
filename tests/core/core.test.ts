@@ -68,7 +68,7 @@ describe('Tracer', () => {
     const steps = t.finish();
     expect(input).toEqual([3, 1, 2]);
     const last = steps[steps.length - 1];
-    expect(last.stats).toEqual({ comparisons: 1, swaps: 1, writes: 1 });
+    expect(last.stats).toEqual({ comparisons: 1, swaps: 1, writes: 1, memory: 0 });
     expect(last.state.array).toEqual([1, 3, 9]);
     expect(last.marks).toHaveLength(3);
   });

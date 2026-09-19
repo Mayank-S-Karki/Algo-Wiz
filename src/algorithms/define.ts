@@ -1,5 +1,5 @@
 /** Generic definer for algorithms driven by the form input (DP, strings, classics). */
-import type { AlgorithmDef, Complexity, Family, FieldSpec, FormInput, Step, ViewKind } from '../core/step';
+import type { AlgorithmDef, Complexity, Family, FieldSpec, FormInput, ScaleSpec, Step, ViewKind } from '../core/step';
 import { theoryFor } from './theory';
 
 /** Everything a form-driven algorithm file provides. */
@@ -16,6 +16,8 @@ export interface FormSpec<S> {
   randomLabel?: string;
   view: ViewKind;
   run: (input: FormInput) => Step<S>[];
+  /** Inputs of growing size for the Complexity Lab. */
+  scale?: ScaleSpec<FormInput>;
 }
 
 /**
@@ -36,5 +38,6 @@ export function defineForm<S>(s: FormSpec<S>): AlgorithmDef<FormInput, S> {
     input: { kind: 'form', maxSize: 100, defaultSize: 0, form: s.form, randomize: s.randomize, randomLabel: s.randomLabel },
     run: s.run,
     view: s.view,
+    scale: s.scale,
   };
 }

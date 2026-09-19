@@ -31,6 +31,7 @@ export const dijkstraGraph = defineGraph({
     const done = Array(g.n).fill(false);
     const parent: number[] = Array(g.n).fill(-1);
     dist[g.source] = 0;
+    r.alloc(3 * g.n);
     const show = () => dist.forEach((d, i) => (r.sub[i] = d === Infinity ? INF : String(d)));
     show();
     r.kinds[g.source] = 'frontier';
@@ -87,6 +88,7 @@ export const bellmanFord = defineGraph({
     const dist = Array(g.n).fill(Infinity);
     const parent: number[] = Array(g.n).fill(-1);
     dist[g.source] = 0;
+    r.alloc(2 * g.n);
     const show = () => dist.forEach((d, i) => (r.sub[i] = d === Infinity ? INF : String(d)));
     show();
     r.snap(0, `Distance to ${L(g.source)} is 0; the rest are infinity.`);
@@ -144,6 +146,7 @@ export const floydWarshall = defineGraph({
     const d: number[][] = Array.from({ length: n }, (_, i) => Array.from({ length: n }, (_, j) => (i === j ? 0 : Infinity)));
     for (const e of g.edges) d[e.u][e.v] = Math.min(d[e.u][e.v], e.w);
     const r = new Rec<TableState>(['checks', 'improvements']);
+    r.alloc(n * n);
     /** Snapshot of the matrix with the given highlights. */
     const snap = (marks: Mark[], line: number, explain: string) =>
       r.snap(

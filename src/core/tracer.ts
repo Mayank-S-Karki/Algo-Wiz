@@ -10,7 +10,11 @@ export class Tracer {
   readonly steps: Step<ArrayState>[] = [];
   /** Live working array; algorithms may read it directly and mutate it via the helpers. */
   readonly a: number[];
-  private stats = { comparisons: 0, swaps: 0, writes: 0 };
+  private stats = { comparisons: 0, swaps: 0, writes: 0, memory: 0 };
+  /** Extra cells currently allocated (temporary arrays, counts, buckets). */
+  private aux = 0;
+  /** Current recursion depth; each frame counts as one cell of memory. */
+  private depth = 0;
 
   /**
    * Starts a recording and pushes the initial "start" step.
@@ -91,6 +95,31 @@ export class Tracer {
     this.snap(marks, line, explain);
   }
 
+  /**
+   * Records that `cells` extra memory cells are now in use (a temporary array, a bucket list).
+   * The `memory` counter keeps the peak of extra cells plus recursion depth.
+   */
+  alloc(cells: number): void {
+    this.aux += cells;
+    this.stats.memory = Math.max(this.stats.memory, this.aux + this.depth);
+  }
+
+  /** Releases `cells` extra memory cells. */
+  free(cells: number): void {
+    this.aux -= cells;
+  }
+
+  /** Records entering one recursive call (one stack frame). */
+  enter(): void {
+    this.depth++;
+    this.stats.memory = Math.max(this.stats.memory, this.aux + this.depth);
+  }
+
+  /** Records returning from a recursive call. */
+  leave(): void {
+    this.depth--;
+  }
+
   /** Records a free-form step (announcing a pivot, a pass, a phase). */
   note(marks: Mark[], line: number | null, explain: string): void {
     this.snap(marks, line, explain);
@@ -115,7 +144,8 @@ export class Tracer {
 export class SearchTracer {
   /** Recorded steps, in order. */
   readonly steps: Step<SearchState>[] = [];
-  private stats = { comparisons: 0 };
+  /** Searches here use no extra memory, so `memory` stays 0 and still shows up as a measured constant. */
+  private stats = { comparisons: 0, memory: 0 };
   private shown: number[];
 
   /**
@@ -229,6 +259,31 @@ export class Rec<S> {
    */
   raise(name: string, value: number): void {
     this.stats[name] = Math.max(this.stats[name] ?? 0, value);
+  }
+
+  private aux = 0;
+  private depth = 0;
+
+  /** Records `cells` extra memory cells now in use; `memory` keeps the peak of cells plus recursion depth. */
+  alloc(cells: number): void {
+    this.aux += cells;
+    this.raise('memory', this.aux + this.depth);
+  }
+
+  /** Releases `cells` extra memory cells. */
+  free(cells: number): void {
+    this.aux -= cells;
+  }
+
+  /** Records entering one recursive call (one stack frame). */
+  enter(): void {
+    this.depth++;
+    this.raise('memory', this.aux + this.depth);
+  }
+
+  /** Records returning from a recursive call. */
+  leave(): void {
+    this.depth--;
   }
 
   /**

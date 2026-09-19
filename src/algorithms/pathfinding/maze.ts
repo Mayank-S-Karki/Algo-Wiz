@@ -4,6 +4,7 @@ import { int } from '../../core/forms';
 import type { AlgorithmDef, Complexity, FieldSpec, FormInput, GridState, Mark, Step } from '../../core/step';
 import { Rec } from '../../core/tracer';
 import { theoryFor } from '../theory';
+import { shape, spread } from '../../core/scale';
 
 /** Form for every maze generator: size in cells and a seed. */
 const FORM: FieldSpec[] = [
@@ -76,6 +77,8 @@ class Maze {
 
   /** Pushes a frame. */
   snap(line: number | null, explain: string): void {
+    // Memory = cells already carved into the maze plus the working stack or frontier.
+    this.rec.raise('memory', this.done.size + this.work.size);
     const marks: Mark[] = [];
     this.done.forEach((index) => marks.push({ kind: 'visited', index }));
     this.work.forEach((index) => marks.push({ kind: 'frontier', index }));
@@ -112,6 +115,7 @@ function defineMaze(s: MazeSpec): AlgorithmDef<FormInput, GridState> {
     theory: theoryFor(s.id),
     input: { kind: 'form', maxSize: 100, defaultSize: 0, form: FORM, randomize: (seed) => ({ size: String(4 + (seed % 5)), seed: String(seed) }), randomLabel: 'New maze' },
     view: 'grid',
+    scale: { sizes: spread(2, 9), unit: 'cells', shapes: [shape('random', 'Random seeds', 3)], make: (n, _s, seed) => ({ size: n, seed }), sizeOf: (i) => Number(i.size) ** 2 },
     run(input): Step<GridState>[] {
       const m = new Maze(int(input, 'size'), int(input, 'seed'));
       m.snap(0, 'Start with a solid block of walls and an empty cell in every room.');

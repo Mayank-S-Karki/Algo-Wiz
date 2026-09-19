@@ -14,6 +14,10 @@ import { buildInput, fieldsOf, kindsUsed, stepBadge } from './inputs';
 import { PlayerDock } from './PlayerDock';
 import { Panels } from './Panels';
 import { useShortcuts } from './useShortcuts';
+import { useArrayMode } from './useArrayMode';
+import { trackIds } from '../core/identity';
+import { stepDelayMs } from '../core/player';
+import { ChartBar, SquaresFour } from '@phosphor-icons/react';
 import { usePlayer } from './usePlayer';
 
 /** Props for {@link AlgorithmPage}. */
@@ -181,6 +185,11 @@ export function AlgorithmPage({ def, initial }: AlgorithmPageProps) {
   }, [sound, step]);
 
   const kinds = useMemo(() => kindsUsed(steps), [steps]);
+  const [arrayMode, setArrayMode] = useArrayMode();
+  // Element identities across the run, so swapped values slide instead of jumping.
+  const ids = useMemo(() => (def.view === 'bars' ? trackIds(steps.map((s) => (s.state as { array: number[] }).array)) : null), [def.view, steps]);
+  // Slides finish a little before the next step arrives.
+  const moveMs = Math.round(Math.min(340, Math.max(70, stepDelayMs(player.speed) * 0.85)));
   const badge = stepBadge(step, player.index, steps.length);
   const target = (step.state as { target?: number }).target;
   const FamIcon = fam.Icon;
@@ -213,7 +222,7 @@ export function AlgorithmPage({ def, initial }: AlgorithmPageProps) {
           regenerate(preset === 'custom' ? 'random' : preset, n, seed);
         }} />
 
-        <section className="stage" aria-label="Visualization">
+        <section className="stage" aria-label="Visualization" style={{ ['--move' as string]: `${moveMs}ms` }}>
           <div className="stage-head">
             <span className="step-count">Step {player.index + 1} of {steps.length}</span>
             {badge && (
@@ -223,10 +232,20 @@ export function AlgorithmPage({ def, initial }: AlgorithmPageProps) {
               </span>
             )}
             {target !== undefined && <span className="target-pill">Target {target}</span>}
+            {def.view === 'bars' && (
+              <div className="seg seg-sm view-toggle" role="radiogroup" aria-label="Draw the array as">
+                <button role="radio" aria-checked={arrayMode === 'bars'} data-on={arrayMode === 'bars'} onClick={() => setArrayMode('bars')}>
+                  <ChartBar size={15} weight="bold" aria-hidden="true" /> Bars
+                </button>
+                <button role="radio" aria-checked={arrayMode === 'cells'} data-on={arrayMode === 'cells'} onClick={() => setArrayMode('cells')}>
+                  <SquaresFour size={15} weight="bold" aria-hidden="true" /> Array
+                </button>
+              </div>
+            )}
           </div>
           <p className="explain" aria-live="polite" key={player.index}>{step.explain}</p>
           <div className="stage-body">
-            <StageView def={def} step={step} onToggleCell={toggleCell} />
+            <StageView def={def} step={step} onToggleCell={toggleCell} ids={ids?.[player.index]} arrayMode={arrayMode} />
           </div>
           {toggleCell && <p className="stage-hint">Click any cell on the board to add or remove a wall.</p>}
           <Legend kinds={kinds} />
@@ -234,7 +253,7 @@ export function AlgorithmPage({ def, initial }: AlgorithmPageProps) {
 
         <PlayerDock player={player} length={steps.length} sound={sound} onSound={setSound} />
       </div>
-      <Panels def={def} steps={steps} index={player.index} onSeek={player.seek} />
+      <Panels def={def} steps={steps} index={player.index} onSeek={player.seek} input={built.ok ? built.input : null} />
     </div>
   );
 }

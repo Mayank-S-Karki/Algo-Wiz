@@ -1,4 +1,5 @@
 import { int } from '../../core/forms';
+import { shape, spread } from '../../core/scale';
 import { Table, cellMark } from '../../core/table';
 import { defineForm } from '../define';
 
@@ -18,14 +19,23 @@ export const fibMemo = defineForm({
   pseudocode: ['fib(k):', '  if memo[k] exists: return it', '  if k <= 1: return k', '  memo[k] = fib(k-1) + fib(k-2)', '  return memo[k]'],
   form: FORM,
   randomize,
+  scale: { sizes: spread(1, 20), unit: 'n', shapes: [shape('n', 'F(n)')], make: (n) => ({ n }), sizeOf: (i) => Number(i.n) },
   view: 'cells',
   run(input) {
     const n = int(input, 'n');
     const t = new Table(1, n + 1, ['calls', 'cache hits'], ['F(k)'], Array.from({ length: n + 1 }, (_, i) => String(i)));
+    t.rec.alloc(n + 1);
     t.snap([], 0, `Compute F(${n}). The cache starts empty.`);
     /** Memoized recursive Fibonacci. */
     const fib = (k: number): number => {
       t.rec.count('calls');
+      t.rec.enter();
+      const out = fibBody(k);
+      t.rec.leave();
+      return out;
+    };
+    /** Body of one memoized call. */
+    const fibBody = (k: number): number => {
       const cached = t.get(0, k);
       if (cached !== null) {
         t.rec.count('cache hits');
@@ -55,10 +65,12 @@ export const fibTab = defineForm({
   pseudocode: ['table[0] = 0; table[1] = 1', 'for k from 2 to n', '  table[k] = table[k-1] + table[k-2]', 'return table[n]'],
   form: FORM,
   randomize,
+  scale: { sizes: spread(1, 20), unit: 'n', shapes: [shape('n', 'F(n)')], make: (n) => ({ n }), sizeOf: (i) => Number(i.n) },
   view: 'cells',
   run(input) {
     const n = int(input, 'n');
     const t = new Table(1, n + 1, ['cells filled'], ['F(k)'], Array.from({ length: n + 1 }, (_, i) => String(i)));
+    t.rec.alloc(n + 1);
     t.snap([], 0, `Fill a table for F(0) to F(${n}).`);
     t.set(0, 0, 0);
     t.rec.count('cells filled');

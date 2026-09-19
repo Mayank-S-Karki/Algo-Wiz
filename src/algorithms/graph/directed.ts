@@ -22,15 +22,17 @@ export const topoKahn = defineGraph({
     const g = parseGraph({ ...input, source: 0 }, true, false);
     const r = new GraphRec(g, ['sorted']);
     const indeg = Array(g.n).fill(0);
+    r.alloc(g.n);
     g.edges.forEach((e) => indeg[e.v]++);
     const show = () => indeg.forEach((d, i) => r.sub[i] === '' || r.sub[i].startsWith('in=') ? (r.sub[i] = `in=${d}`) : 0);
     show();
     const q: number[] = [];
-    indeg.forEach((d, i) => d === 0 && (q.push(i), (r.kinds[i] = 'frontier')));
+    indeg.forEach((d, i) => d === 0 && (q.push(i), r.alloc(1), (r.kinds[i] = 'frontier')));
     r.snap(1, `Nodes with no incoming edges: ${q.length ? q.map(L).join(', ') : 'none'}.`);
     let k = 0;
     while (q.length) {
       const u = q.shift() as number;
+      r.free(1);
       r.kinds[u] = 'active';
       r.sub[u] = `#${++k}`;
       r.count('sorted');
@@ -40,6 +42,7 @@ export const topoKahn = defineGraph({
         show();
         if (indeg[v] === 0) {
           q.push(v);
+          r.alloc(1);
           r.kinds[v] = 'frontier';
           r.flash(u, v, 'path', 4, `Remove ${L(u)}→${L(v)}: ${L(v)} now has no incoming edges, so queue it.`);
         } else r.flash(u, v, 'compare', 4, `Remove ${L(u)}→${L(v)}: ${L(v)} still has ${indeg[v]} incoming.`);
@@ -70,11 +73,13 @@ export const topoDfs = defineGraph({
     const g = parseGraph({ ...input, source: 0 }, true, false);
     const r = new GraphRec(g, ['finished']);
     const state = Array(g.n).fill(0); // 0 new, 1 in progress, 2 done
+    r.alloc(2 * g.n);
     const order: number[] = [];
     let cyc = false;
     /** Depth-first visit; stops the whole search when a back edge proves a cycle. */
     const dfs = (u: number): void => {
       if (cyc) return;
+      r.enter();
       state[u] = 1;
       r.kinds[u] = 'active';
       r.snap(1, `Enter ${L(u)}.`);
@@ -94,6 +99,7 @@ export const topoDfs = defineGraph({
         }
       }
       if (cyc) return;
+      r.leave();
       state[u] = 2;
       order.push(u);
       r.kinds[u] = 'visited';
@@ -131,10 +137,12 @@ export const cycleDetection = defineGraph({
     const g = parseGraph({ ...input, source: 0 }, true, false);
     const r = new GraphRec(g, ['cycle found', 'nodes visited']);
     const color = Array(g.n).fill(0);
+    r.alloc(g.n);
     const path: number[] = [];
     let found = false;
     /** Visits u; returns true as soon as a cycle is found. */
     const dfs = (u: number): boolean => {
+      r.enter();
       color[u] = 1;
       path.push(u);
       r.kinds[u] = 'active';
@@ -158,6 +166,7 @@ export const cycleDetection = defineGraph({
           r.kinds[u] = 'active';
         } else r.flash(u, v, 'compare', 2, `${L(v)} is already finished: this edge cannot start a cycle.`);
       }
+      r.leave();
       color[u] = 2;
       path.pop();
       r.kinds[u] = 'visited';
@@ -193,11 +202,13 @@ export const tarjanScc = defineGraph({
     const low = Array(g.n).fill(0);
     const onStack = Array(g.n).fill(false);
     const stack: number[] = [];
+    r.alloc(3 * g.n);
     let next = 0;
     let comps = 0;
     const show = (u: number) => (r.sub[u] = `${idx[u]}/${low[u]}`);
     /** Tarjan's recursive visit. */
     const dfs = (u: number): void => {
+      r.enter();
       idx[u] = low[u] = next++;
       stack.push(u);
       onStack[u] = true;
@@ -236,6 +247,7 @@ export const tarjanScc = defineGraph({
         r.kinds[u] = 'frontier';
         r.snap(4, `${L(u)} is not a root; it stays on the stack.`);
       }
+      r.leave();
     };
     r.snap(0, 'No node has been visited yet.');
     for (let s = 0; s < g.n; s++) if (idx[s] < 0) dfs(s);

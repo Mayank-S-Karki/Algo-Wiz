@@ -3,6 +3,7 @@ import { InputError } from '../../core/forms';
 import type { AlgorithmDef, FieldSpec, FormInput, Mark, Step, TreeNode, TreeState } from '../../core/step';
 import { Rec } from '../../core/tracer';
 import { theoryFor } from '../theory';
+import { shape, spread } from '../../core/scale';
 
 /** Largest array the segment tree forms accept (keeps the drawing readable). */
 const MAX_LEN = 12;
@@ -55,17 +56,20 @@ class Seg {
 
   /** Builds the tree bottom-up, one node per frame. When `record` is false it is silent. */
   build(i: number, record: boolean, line: number): void {
+    if (record) this.rec.enter();
     const l = this.lo[i];
     const r = this.hi[i];
     if (l === r) {
       this.sum[i] = this.a[l];
       if (record) this.snap([{ kind: 'insert', index: i }], line, `Leaf for index ${l}: value ${this.a[l]}.`);
+      if (record) this.rec.leave();
       return;
     }
     this.build(2 * i, record, line);
     this.build(2 * i + 1, record, line);
     this.sum[i] = (this.sum[2 * i] as number) + (this.sum[2 * i + 1] as number);
     if (record) this.snap([{ kind: 'insert', index: i }, { kind: 'compare', index: 2 * i }, { kind: 'compare', index: 2 * i + 1 }], line, `Node [${l}..${r}] = ${this.sum[2 * i]} + ${this.sum[2 * i + 1]} = ${this.sum[i]}.`);
+    if (record) this.rec.leave();
   }
 }
 
@@ -93,6 +97,13 @@ function defineSeg(id: string, name: string, summary: string, pseudocode: string
     theory: theoryFor(id),
     input: { kind: 'form', maxSize: 100, defaultSize: 0, form: segForm(extra), randomize: segRandom },
     view: 'tree',
+    scale: {
+      sizes: spread(1, MAX_LEN),
+      unit: 'elements',
+      shapes: [shape('random', 'Random values')],
+      make: (n) => ({ array: Array.from({ length: n }, (_, i) => 1 + ((i * 7) % 9)), from: 0, to: n - 1, index: Math.floor(n / 2), value: 5 }),
+      sizeOf: (i) => (i.array as number[]).length,
+    },
     run(input): Step<TreeState>[] {
       const a = nums(input, 'array');
       if (a.length === 0) throw new InputError('Enter at least one number.');
@@ -128,7 +139,14 @@ export const segQuery = defineSeg(
     s.snap([], 0, `Sum of indices ${from}..${to}.`);
     /** Recursive query returning the sum of the overlap. */
     const q = (i: number): number => {
+      s.rec.enter();
       const l = s.lo[i];
+      const out = qInner(i, l);
+      s.rec.leave();
+      return out;
+    };
+    /** Body of one query call. */
+    const qInner = (i: number, l: number): number => {
       const r = s.hi[i];
       s.rec.count('nodes touched');
       if (r < from || l > to) {
@@ -160,6 +178,7 @@ export const segUpdate = defineSeg(
   (s, input) => {
     const idx = int(input, 'index');
     const v = int(input, 'value');
+    s.rec.raise('memory', 0);
     if (idx >= s.n) throw new InputError(`Index must be between 0 and ${s.n - 1}.`);
     s.build(1, false, 0);
     s.snap([], 0, `Set a[${idx}] = ${v}.`);

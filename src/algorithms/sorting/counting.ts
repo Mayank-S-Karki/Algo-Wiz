@@ -19,6 +19,7 @@ export const countingSort = defineSort({
     const t = new Tracer(input);
     const counts = new Map<number, number>();
     t.a.forEach((x, i) => {
+      if (!counts.has(x)) t.alloc(1);
       counts.set(x, (counts.get(x) ?? 0) + 1);
       t.note([{ kind: 'active', index: i }], 1, `Tally ${x}: seen ${counts.get(x)} time${counts.get(x) === 1 ? '' : 's'} so far.`);
     });

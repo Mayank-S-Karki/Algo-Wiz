@@ -175,3 +175,50 @@ describe('buildInput', () => {
     expect(buildInput(binarySearch.input, { text: '5, 1, 3', target: 'abc', value: '', index: '' })).toMatchObject({ ok: false });
   });
 });
+
+describe('complexity lab and timeline', () => {
+  it('shows the lab in the Theory tab and switches to space', async () => {
+    window.location.hash = '#/a/merge-sort';
+    render(<App />);
+    fireEvent.click(screen.getByRole('tab', { name: 'Theory' }));
+    expect(screen.getByRole('heading', { name: 'Complexity Lab' })).toBeInTheDocument();
+    fireEvent.click(screen.getByRole('radio', { name: 'Space' }));
+    expect(screen.getByRole('radio', { name: 'Space' })).toHaveAttribute('aria-checked', 'true');
+    // Measurements arrive in time slices; wait for the verdict to name a growth class.
+    expect(await screen.findByText(/grows like/, {}, { timeout: 4000 })).toBeInTheDocument();
+  });
+  it('explains when an algorithm cannot be scaled', () => {
+    window.location.hash = '#/a/sudoku';
+    render(<App />);
+    fireEvent.click(screen.getByRole('tab', { name: 'Theory' }));
+    expect(screen.getByText(/cannot be measured/)).toBeInTheDocument();
+  });
+  it('opens and closes the larger view', () => {
+    window.location.hash = '#/a/bubble-sort';
+    render(<App />);
+    fireEvent.click(screen.getByRole('tab', { name: 'Theory' }));
+    fireEvent.click(screen.getByRole('button', { name: /larger view/ }));
+    expect(screen.getByRole('dialog', { name: /Complexity Lab: Bubble Sort/ })).toBeInTheDocument();
+    fireEvent.click(screen.getByRole('button', { name: 'Close' }));
+    expect(screen.queryByRole('dialog')).toBeNull();
+  });
+  it('draws a counter timeline in the Stats tab', () => {
+    window.location.hash = '#/a/bubble-sort';
+    render(<App />);
+    fireEvent.click(screen.getByRole('tab', { name: 'Stats' }));
+    expect(screen.getByRole('group', { name: /Counters over the run/ })).toBeInTheDocument();
+    expect(screen.getAllByText('peak memory').length).toBeGreaterThan(0);
+  });
+});
+
+describe('array display mode', () => {
+  it('switches between bars and boxes', () => {
+    window.location.hash = '#/a/bubble-sort';
+    render(<App />);
+    expect(document.querySelector('.bars')).not.toBeNull();
+    fireEvent.click(screen.getByRole('radio', { name: /Array/ }));
+    expect(document.querySelector('.arr')).not.toBeNull();
+    fireEvent.click(screen.getByRole('radio', { name: /Bars/ }));
+    expect(document.querySelector('.bars')).not.toBeNull();
+  });
+});

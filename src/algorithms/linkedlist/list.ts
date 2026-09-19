@@ -52,7 +52,7 @@ class Rec {
       marks,
       line: line === null ? null : this.ln(line),
       explain,
-      stats: { visited: this.visited, pointerChanges: this.pointerOps },
+      stats: { visited: this.visited, pointerChanges: this.pointerOps, memory: 0 },
     });
   }
 

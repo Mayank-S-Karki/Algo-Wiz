@@ -1,4 +1,5 @@
 import { InputError, int, nums, str } from '../../core/forms';
+import { shape, spread } from '../../core/scale';
 import type { GridState, HanoiState, Mark } from '../../core/step';
 import { Rec } from '../../core/tracer';
 import { Table, cellMark } from '../../core/table';
@@ -18,11 +19,13 @@ export const nQueens = defineForm({
   pseudocode: ['place(row): if row == n: solved', '  for each column c in this row', '    if no queen above attacks (row, c)', '      put a queen there; place(row + 1)', '      if that failed: remove the queen (backtrack)', '  return false'],
   form: [{ key: 'n', label: 'Board size', type: 'int', default: 6, min: 4, max: 8 }],
   randomize: (seed) => ({ n: String(4 + (seed % 5)) }),
+  scale: { sizes: [4, 5, 6, 7, 8], unit: 'board size', shapes: [shape('board', 'n x n board')], make: (n) => ({ n }), sizeOf: (i) => int(i, 'n') },
   view: 'grid',
   run(input) {
     const n = int(input, 'n');
     const r = new Rec<GridState>(['placements', 'backtracks']);
     const col: number[] = [];
+    r.alloc(n);
     let steps = 0;
     /** Draws the board with queens and optional marks. */
     const snap = (marks: Mark[], line: number, explain: string) => {
@@ -37,6 +40,13 @@ export const nQueens = defineForm({
     /** Tries to fill rows from `row` downward. */
     const place = (row: number): boolean => {
       if (row === n) return true;
+      r.enter();
+      const ok = placeBody(row);
+      r.leave();
+      return ok;
+    };
+    /** Tries every column of one row. */
+    const placeBody = (row: number): boolean => {
       for (let c = 0; c < n; c++) {
         if (steps > STEP_CAP) return false;
         if (attacked(row, c)) {
@@ -119,6 +129,13 @@ export const sudoku = defineForm({
     snap([], 0, `${g.filter((v) => !v).length} blank cells to fill.`);
     /** Solves from the first blank cell onward. */
     const solve = (): boolean => {
+      r.enter();
+      const ok = solveBody();
+      r.leave();
+      return ok;
+    };
+    /** Fills the first blank cell, then recurses. */
+    const solveBody = (): boolean => {
       const i = g.indexOf(0);
       if (i < 0) return true;
       for (let d = 1; d <= 9; d++) {
@@ -151,6 +168,7 @@ export const hanoi = defineForm({
   pseudocode: ['move(n, from, to, spare)', '  if n == 0: return', '  move(n-1, from, spare, to)', '  move disk n from `from` to `to`', '  move(n-1, spare, to, from)'],
   form: [{ key: 'n', label: 'Disks', type: 'int', default: 4, min: 1, max: 6 }],
   randomize: (seed) => ({ n: String(2 + (seed % 5)) }),
+  scale: { sizes: [1, 2, 3, 4, 5, 6], unit: 'disks', shapes: [shape('tower', 'n disks')], make: (n) => ({ n }), sizeOf: (i) => int(i, 'n') },
   view: 'hanoi',
   run(input) {
     const n = int(input, 'n');
@@ -163,12 +181,14 @@ export const hanoi = defineForm({
     /** Recursive solution. */
     const move = (k: number, from: number, to: number, spare: number): void => {
       if (k === 0) return;
+      r.enter();
       move(k - 1, from, spare, to);
       const disk = pegs[from].pop() as number;
       pegs[to].push(disk);
       r.count('moves');
       snap([{ kind: 'swap', index: disk }], 3, `Move disk ${disk} from ${names[from]} to ${names[to]}.`);
       move(k - 1, spare, to, from);
+      r.leave();
     };
     move(n, 0, 2, 1);
     snap([], null, `Done in ${2 ** n - 1} moves: the whole tower is on peg C.`);
@@ -187,6 +207,7 @@ export const permutations = defineForm({
   pseudocode: ['permute(k): if k == n: record the arrangement', 'for each i from k to n-1', '  swap items k and i', '  permute(k + 1)', '  swap them back (undo)'],
   form: [{ key: 'items', label: 'Items', type: 'numbers', default: '1, 2, 3', max: 5 }],
   randomize: (seed) => ({ items: Array.from({ length: 3 + (seed % 2) }, (_, i) => i + 1 + (seed % 3)).join(', ') }),
+  scale: { sizes: [1, 2, 3, 4, 5], unit: 'items', shapes: [shape('items', 'n items')], make: (n) => ({ items: Array.from({ length: n }, (_, i) => i + 1) }), sizeOf: (i) => nums(i, 'items').length },
   view: 'cells',
   run(input) {
     const a = nums(input, 'items');
@@ -198,6 +219,12 @@ export const permutations = defineForm({
     t.snap([], 0, `${n}! = ${[...Array(n)].reduce((f, _, i) => f * (i + 1), 1)} orderings to generate.`);
     /** Fixes slot k and permutes the rest. */
     const permute = (k: number): void => {
+      t.rec.enter();
+      permuteBody(k);
+      t.rec.leave();
+    };
+    /** Body of one call. */
+    const permuteBody = (k: number): void => {
       if (k === n) {
         found.push(a.join(''));
         t.rec.count('permutations found');
@@ -230,6 +257,7 @@ export const subsets = defineForm({
   pseudocode: ['choose(i): if i == n: record the chosen items', 'skip item i: choose(i + 1)', 'take item i: mark it chosen; choose(i + 1)', 'unmark item i (undo)'],
   form: [{ key: 'items', label: 'Items', type: 'numbers', default: '1, 2, 3', max: 5 }],
   randomize: (seed) => ({ items: Array.from({ length: 3 + (seed % 2) }, (_, i) => 1 + ((seed * 5 + i * 3) % 9)).join(', ') }),
+  scale: { sizes: [1, 2, 3, 4, 5], unit: 'items', shapes: [shape('items', 'n items')], make: (n) => ({ items: Array.from({ length: n }, (_, i) => i + 1) }), sizeOf: (i) => nums(i, 'items').length },
   view: 'cells',
   run(input) {
     const a = nums(input, 'items');
@@ -241,6 +269,12 @@ export const subsets = defineForm({
     t.snap([], 0, `${n} items make ${2 ** n} subsets.`);
     /** Decides item i. */
     const choose = (i: number): void => {
+      t.rec.enter();
+      chooseBody(i);
+      t.rec.leave();
+    };
+    /** Body of one decision. */
+    const chooseBody = (i: number): void => {
       if (i === n) {
         const s = a.filter((_, k) => t.get(1, k) === 'yes');
         found.push(`{${s.join(' ')}}`);
@@ -276,6 +310,7 @@ export const subsetSum = defineForm({
     { key: 'target', label: 'Target sum', type: 'int', default: 9, min: 1, max: 200 },
   ],
   randomize: (seed) => ({ items: Array.from({ length: 6 }, (_, i) => 1 + ((seed * 11 + i * 7) % 15)).join(', '), target: String(8 + (seed % 12)) }),
+  scale: { sizes: spread(1, 8), unit: 'items', shapes: [shape('unreachable', 'Target cannot be reached (full search)'), shape('reachable', 'Target reachable', 3)], make: (n, s, seed) => { const items = Array.from({ length: n }, (_, i) => 1 + ((seed * 11 + i * 7) % 15)); const sum = items.reduce((a, b) => a + b, 0); return { items, target: s === 'unreachable' ? Math.min(sum + 1, 200) : items.filter((_, i) => (i + seed) % 2 === 0).reduce((a, b) => a + b, 0) || items[0] }; }, sizeOf: (i) => nums(i, 'items').length },
   view: 'cells',
   run(input) {
     const a = nums(input, 'items');
@@ -289,6 +324,12 @@ export const subsetSum = defineForm({
     /** Explores from item i with running sum `sum`. */
     const search = (i: number, sum: number): void => {
       if (solved) return;
+      t.rec.enter();
+      searchBody(i, sum);
+      t.rec.leave();
+    };
+    /** Body of one branch. */
+    const searchBody = (i: number, sum: number): void => {
       const cap = `Running sum: ${sum}`;
       if (sum === target) {
         solved = true;

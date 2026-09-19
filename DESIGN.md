@@ -22,3 +22,9 @@ One authored moment: the landing hero settles in. Everything else is functional 
 
 ## Components
 Player dock (sticky), tabbed panels (Explain, Code, Theory, Stats with growth chart, History), input form generated from each algorithm's field list, command palette, race grid, landing tiles that run the real engine.
+
+## Charts
+The Complexity Lab and counter timeline use the family hue for the main series and the data colors for input shapes (sorted green, random family hue, reversed coral). Fitted curves are dashed and faint; the compare overlay is a dashed foreground line. The user's own run is a pulsing family-colored dot. Every chart has a text alternative (legend with fitted class, measurement table).
+
+## Arrays
+Elements are slots keyed by identity and positioned with transforms, so swaps slide. Slide time (`--move`) follows playback speed. Bars and array boxes share the same slots and mark colors.

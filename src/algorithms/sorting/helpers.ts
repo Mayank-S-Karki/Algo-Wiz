@@ -39,6 +39,7 @@ export function windowMarks(lo: number, hi: number): Mark[] {
 export function mergeRange(t: Tracer, lo: number, mid: number, hi: number, cmpLine: number, writeLine: number): void {
   const left = t.a.slice(lo, mid + 1);
   const right = t.a.slice(mid + 1, hi + 1);
+  t.alloc(hi - lo + 1);
   let i = 0;
   let j = 0;
   let k = lo;
@@ -52,4 +53,5 @@ export function mergeRange(t: Tracer, lo: number, mid: number, hi: number, cmpLi
   }
   while (i < left.length) t.write(k++, left[i++], writeLine, undefined, win);
   while (j < right.length) t.write(k++, right[j++], writeLine, undefined, win);
+  t.free(hi - lo + 1);
 }

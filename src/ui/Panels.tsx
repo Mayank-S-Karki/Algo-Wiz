@@ -2,7 +2,8 @@
 import { memo, useEffect, useRef, useState } from 'react';
 import { CaretRight } from '@phosphor-icons/react';
 import type { AlgorithmDef, Step } from '../core/step';
-import { GrowthChart } from './GrowthChart';
+import { ComplexityLab } from './lab/ComplexityLab';
+import { CounterTimeline } from './lab/CounterTimeline';
 
 /** Tab ids. */
 type Tab = 'explain' | 'code' | 'theory' | 'stats' | 'history';
@@ -22,13 +23,15 @@ interface PanelsProps {
   steps: Step<any>[];
   index: number;
   onSeek: (i: number) => void;
+  /** Input of the current run (null while the form is invalid); places the run on the lab chart. */
+  input: unknown;
 }
 
 /**
  * Tabbed side panel. Only the active tab renders, so long histories cost nothing when hidden.
  * @param props - algorithm, run, current index, and seek callback
  */
-export function Panels({ def, steps, index, onSeek }: PanelsProps) {
+export function Panels({ def, steps, index, onSeek, input }: PanelsProps) {
   const [tab, setTab] = useState<Tab>('explain');
   const step = steps[index];
   return (
@@ -43,8 +46,8 @@ export function Panels({ def, steps, index, onSeek }: PanelsProps) {
       <div className="panel-body" id="panel-body" role="tabpanel" aria-labelledby={`tab-${tab}`}>
         {tab === 'explain' && <ExplainTab def={def} steps={steps} index={index} />}
         {tab === 'code' && <CodeTab def={def} line={step?.line ?? null} />}
-        {tab === 'theory' && <TheoryTab def={def} />}
-        {tab === 'stats' && <StatsTab def={def} step={step} total={steps.length} index={index} />}
+        {tab === 'theory' && <TheoryTab def={def} steps={steps} index={index} input={input} />}
+        {tab === 'stats' && <StatsTab steps={steps} index={index} onSeek={onSeek} />}
         {tab === 'history' && <HistoryTab steps={steps} index={index} onSeek={onSeek} />}
       </div>
     </aside>
@@ -90,11 +93,12 @@ function CodeTab({ def, line }: { def: AlgorithmDef<any, any>; line: number | nu
 }
 
 /** Theory tab: complexity table, invariant, proof, and notes. */
-function TheoryTab({ def }: { def: AlgorithmDef<any, any> }) {
+function TheoryTab({ def, steps, index, input }: { def: AlgorithmDef<any, any>; steps: Step<any>[]; index: number; input: unknown }) {
   const c = def.complexity;
   const { invariant, proof, notes } = def.theory;
   return (
     <div className="stack">
+      <ComplexityLab def={def} steps={steps} index={index} input={input} />
       <table className="complexity">
         <caption className="sr-only">Complexity</caption>
         <tbody>
@@ -127,20 +131,21 @@ function TheoryTab({ def }: { def: AlgorithmDef<any, any> }) {
   );
 }
 
-/** Stats tab: live counters for the current step. */
-function StatsTab({ def, step, total, index }: { def: AlgorithmDef<any, any>; step: Step<any> | undefined; total: number; index: number }) {
+/** Stats tab: current counters plus a timeline of every counter over the run. */
+function StatsTab({ steps, index, onSeek }: { steps: Step<any>[]; index: number; onSeek: (i: number) => void }) {
+  const step = steps[index];
   const entries = Object.entries(step?.stats ?? {});
   return (
     <div className="stack">
       <dl className="stats">
-        <div><dt>Step</dt><dd>{index + 1}<span className="dim"> / {total}</span></dd></div>
+        <div><dt>Step</dt><dd>{index + 1}<span className="dim"> / {steps.length}</span></dd></div>
         {entries.map(([k, v]) => (
-          <div key={k}><dt>{k.replace(/([A-Z])/g, ' $1').toLowerCase()}</dt><dd>{v}</dd></div>
+          <div key={k}><dt>{k === 'memory' ? 'peak memory' : k.replace(/([A-Z])/g, ' $1').toLowerCase()}</dt><dd>{v}</dd></div>
         ))}
       </dl>
       <div>
-        <h3>How it scales</h3>
-        <GrowthChart complexity={def.complexity} />
+        <h3>Counters over time</h3>
+        <CounterTimeline steps={steps} index={index} onSeek={onSeek} />
       </div>
     </div>
   );

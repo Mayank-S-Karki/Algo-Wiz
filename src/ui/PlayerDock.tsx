@@ -40,14 +40,14 @@ export function PlayerDock({ player, length, sound, onSound }: PlayerDockProps) 
       </div>
       <label className="scrub">
         <span className="sr-only">Step position</span>
-        <input type="range" min={0} max={Math.max(length - 1, 0)} value={player.index} onChange={(e) => player.seek(Number(e.target.value))} />
+        <input type="range" min={0} max={Math.max(length - 1, 0)} value={player.index} onChange={(e) => player.seek(Number(e.target.value))} style={{ ['--p' as string]: `${(100 * ((player.index) - (0))) / Math.max((length - 1) - (0), 1)}%` }} />
         <span className="scrub-count">
           {player.index + 1}<span className="dim"> / {length}</span>
         </span>
       </label>
       <label className="speed">
         <span>Speed</span>
-        <input type="range" min={0} max={SPEEDS.length - 1} step={1} value={speedIdx} onChange={(e) => player.setSpeed(SPEEDS[Number(e.target.value)])} aria-valuetext={`${player.speed} times`} />
+        <input type="range" min={0} max={SPEEDS.length - 1} step={1} value={speedIdx} style={{ ['--p' as string]: `${(100 * ((speedIdx) - (0))) / Math.max((SPEEDS.length - 1) - (0), 1)}%` }} onChange={(e) => player.setSpeed(SPEEDS[Number(e.target.value)])} aria-valuetext={`${player.speed} times`} />
         <output>{player.speed}x</output>
       </label>
       <div className="dock-toggles">

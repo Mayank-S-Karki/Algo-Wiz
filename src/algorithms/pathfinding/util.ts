@@ -4,6 +4,7 @@ import { mulberry32 } from '../../core/random';
 import type { AlgorithmDef, Complexity, FieldSpec, FormInput, GridState, Mark, Step } from '../../core/step';
 import { Rec } from '../../core/tracer';
 import { theoryFor } from '../theory';
+import { shape } from '../../core/scale';
 
 /** A parsed grid-search problem. */
 export interface Problem {
@@ -164,6 +165,8 @@ export class GridRec {
    * @param explain - sentence for the frame
    */
   snap(line: number | null, explain: string): void {
+    // Memory = cells the search is holding on to (explored plus waiting).
+    this.rec.raise('memory', this.visited.size + this.visitedB.size + this.frontier.size);
     const marks: Mark[] = [];
     this.visited.forEach((index) => marks.push({ kind: 'visited', index }));
     this.visitedB.forEach((index) => marks.push({ kind: 'insert', index }));
@@ -220,5 +223,19 @@ export function definePath(s: PathSpec): AlgorithmDef<FormInput, GridState> {
     input: { kind: 'form', maxSize: 100, defaultSize: 0, form: inp.form, randomize: inp.randomize, randomLabel: 'Random walls' },
     run: s.run,
     view: 'grid',
+    scale: {
+      sizes: [3, 4, 5, 6, 8, 10, 12, 14],
+      unit: 'cells',
+      shapes: [shape('open', 'Open board'), shape('walls', 'Board with random walls', 3)],
+      make: (side, sh, seed) => {
+        const mid = Math.floor(side / 2);
+        const start = mid * side;
+        const goal = mid * side + side - 1;
+        const rnd = mulberry32(seed * 7907 + side);
+        const walls = sh === 'open' ? [] : Array.from({ length: side * side }, (_, i) => i).filter((i) => i !== start && i !== goal && rnd() < 0.25);
+        return { rows: side, cols: side, start, goal, walls, mud: [] };
+      },
+      sizeOf: (i) => Number(i.rows) * Number(i.cols),
+    },
   };
 }

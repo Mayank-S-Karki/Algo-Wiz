@@ -29,6 +29,7 @@ export const quickSort = defineSort({
         done.add(lo);
         return;
       }
+      t.enter();
       const pivot = t.a[hi];
       t.note([...fixed(), { kind: 'pivot', index: hi, label: 'pivot' }], 2, `Choose ${pivot} (index ${hi}) as the pivot.`);
       let i = lo;
@@ -44,6 +45,7 @@ export const quickSort = defineSort({
       t.note(fixed(), 5, `Pivot ${pivot} is now at its final index ${i}.`);
       sort(lo, i - 1);
       sort(i + 1, hi);
+      t.leave();
     };
     sort(0, t.a.length - 1);
     return t.finish(6);

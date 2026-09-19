@@ -21,9 +21,11 @@ export const radixSort = defineSort({
     const max = Math.max(...t.a) - min;
     for (let exp = 1; Math.floor(max / exp) > 0; exp *= 10) {
       const buckets: number[][] = Array.from({ length: 10 }, () => []);
+      t.alloc(t.a.length + 10);
       for (const v of t.a) buckets[Math.floor((v - min) / exp) % 10].push(v);
       const digitName = exp === 1 ? 'ones' : exp === 10 ? 'tens' : exp === 100 ? 'hundreds' : `10^${Math.log10(exp)}`;
       t.replace(buckets.flat(), 2, `Sort by the ${digitName} digit (stable): bucket sizes ${buckets.map((b) => b.length).join(', ')}.`, t.a.map((_, index) => ({ kind: 'active' as const, index })));
+      t.free(t.a.length + 10);
     }
     return t.finish(3);
   },

@@ -3,6 +3,8 @@ import { InputError } from '../../core/forms';
 import type { AlgorithmDef, FormInput, Mark, Step, TreeNode, TreeState } from '../../core/step';
 import { Rec } from '../../core/tracer';
 import { theoryFor } from '../theory';
+import { mulberry32 } from '../../core/random';
+import { shape, spread } from '../../core/scale';
 
 /** Union-find (disjoint set forest) with union by rank and path compression, drawn as a forest. */
 export const unionFind: AlgorithmDef<FormInput, TreeState> = {
@@ -25,6 +27,17 @@ export const unionFind: AlgorithmDef<FormInput, TreeState> = {
     randomize: (seed) => ({ n: '8', ops: Array.from({ length: 7 }, (_, i) => `${(seed * 3 + i * 5) % 8}-${(seed * 7 + i * 3 + 1) % 8}`).filter((s) => s.split('-')[0] !== s.split('-')[1]).join(', ') }),
   },
   view: 'tree',
+  scale: {
+    sizes: spread(2, 12),
+    unit: 'elements',
+    shapes: [shape('random', 'Random unions', 3), shape('chain', 'Unions along a chain')],
+    make: (n, s, seed) => {
+      const rnd = mulberry32(seed * 53 + n);
+      const pairs = Array.from({ length: n - 1 }, (_, i) => (s === 'chain' ? `${i}-${i + 1}` : `${Math.floor(rnd() * n)}-${Math.floor(rnd() * n)}`));
+      return { n, ops: pairs.join(', ') };
+    },
+    sizeOf: (i) => Number(i.n),
+  },
   run(input): Step<TreeState>[] {
     const n = int(input, 'n');
     const pairs = str(input, 'ops').split(/[,;]+/).map((s) => s.trim()).filter(Boolean).map((s) => {
@@ -48,6 +61,7 @@ export const unionFind: AlgorithmDef<FormInput, TreeState> = {
       const path = [x];
       while (parent[path[path.length - 1]] !== path[path.length - 1]) path.push(parent[path[path.length - 1]]);
       const root = path[path.length - 1];
+      r.raise('memory', path.length);
       snap(path.map((index, k) => ({ kind: k === path.length - 1 ? ('found' as const) : ('compare' as const), index })), 0, `find(${x}): follow parents ${path.join(' → ')}; the root is ${root}.`);
       if (path.length > 2) {
         path.slice(0, -1).forEach((p) => (parent[p] = root));

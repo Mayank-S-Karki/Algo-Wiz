@@ -24,6 +24,7 @@ export const prim = defineGraph({
     const r = new GraphRec(g, ['total weight', 'edges added']);
     const inTree = Array(g.n).fill(false);
     inTree[g.source] = true;
+    r.alloc(g.n);
     r.kinds[g.source] = 'visited';
     let total = 0;
     r.snap(0, `Start the tree at ${L(g.source)}.`);
@@ -69,6 +70,7 @@ export const kruskal = defineGraph({
     const g = parseGraph({ ...input, source: 0 }, false, true);
     const r = new GraphRec(g, ['total weight', 'edges added']);
     const root = Array.from({ length: g.n }, (_, i) => i);
+    r.alloc(g.n + g.edges.length);
     /** Finds the set representative of x. */
     const find = (x: number): number => (root[x] === x ? x : (root[x] = find(root[x])));
     const label = () => root.forEach((_, i) => (r.sub[i] = `set ${L(find(i))}`));

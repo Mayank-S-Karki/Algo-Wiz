@@ -1,7 +1,8 @@
 /** Shared graph plumbing: edge-list parsing, circular layout, random graphs, and the step recorder. */
 import { InputError, int, str } from '../../core/forms';
 import { mulberry32 } from '../../core/random';
-import { edgeKey, type AlgorithmDef, type Complexity, type FieldSpec, type FormInput, type GraphState, type Mark, type MarkKind, type Step } from '../../core/step';
+import { edgeKey, type AlgorithmDef, type Complexity, type FieldSpec, type FormInput, type GraphState, type Mark, type MarkKind, type ScaleSpec, type Step } from '../../core/step';
+import { shape, spread } from '../../core/scale';
 import { Rec } from '../../core/tracer';
 import { theoryFor } from '../theory';
 
@@ -78,9 +79,10 @@ export function parseGraph(input: FormInput, directed: boolean, weighted: boolea
  * @param seed - random seed
  * @param n - node count
  * @param o - `weighted` adds weights, `acyclic` keeps edges pointing from lower to higher index, `negative` allows some negative weights
+ * @param extra - how many extra edges to try beyond the connecting chain (default n)
  * @returns edge-list text
  */
-export function randomEdges(seed: number, n: number, o: { weighted?: boolean; acyclic?: boolean; negative?: boolean; directed?: boolean }): string {
+export function randomEdges(seed: number, n: number, o: { weighted?: boolean; acyclic?: boolean; negative?: boolean; directed?: boolean }, extra = n): string {
   const rnd = mulberry32(seed);
   const out: string[] = [];
   const used = new Set<string>();
@@ -94,7 +96,7 @@ export function randomEdges(seed: number, n: number, o: { weighted?: boolean; ac
   };
   // A spanning chain guarantees the graph is connected from node 0.
   for (let i = 1; i < n; i++) add(o.acyclic || o.directed ? Math.floor(rnd() * i) : Math.floor(rnd() * i), i);
-  for (let k = 0; k < n; k++) {
+  for (let k = 0; k < extra; k++) {
     let a = Math.floor(rnd() * n);
     let b = Math.floor(rnd() * n);
     if (o.acyclic && a > b) [a, b] = [b, a];
@@ -120,7 +122,7 @@ interface GraphInputOpts {
  * @param o - default graph and how random graphs should look
  * @returns `form` and `randomize` for an InputSpec
  */
-export function graphInput(o: GraphInputOpts): { form: FieldSpec[]; randomize: (seed: number) => Record<string, string> } {
+export function graphInput(o: GraphInputOpts): { form: FieldSpec[]; randomize: (seed: number) => Record<string, string>; scale: ScaleSpec<FormInput> } {
   const form: FieldSpec[] = [
     { key: 'n', label: 'Nodes', type: 'int', default: o.n, min: 2, max: MAX_NODES },
     { key: 'edges', label: 'Edges', type: 'text', default: o.edges, help: `Like A-B${o.weighted ? ':4' : ''}, separated by commas.${o.directed ? ' A-B means A points to B.' : ''}` },
@@ -131,6 +133,13 @@ export function graphInput(o: GraphInputOpts): { form: FieldSpec[]; randomize: (
     randomize: (seed) => {
       const n = 6 + (seed % 3);
       return { n: String(n), edges: randomEdges(seed, n, o), source: '0' };
+    },
+    scale: {
+      sizes: spread(3, MAX_NODES),
+      unit: 'nodes',
+      shapes: [shape('sparse', 'Sparse graph (about 1.5 edges per node)', 3), shape('dense', 'Dense graph (about 3 edges per node)', 3)],
+      make: (n, s, seed) => ({ n, edges: randomEdges(seed * 31 + n, n, o, s === 'dense' ? 2 * n : Math.ceil(n / 2)), source: 0 }),
+      sizeOf: (i) => Number(i.n),
     },
   };
 }
@@ -171,6 +180,26 @@ export class GraphRec {
   /** Raises a counter to at least `value`. */
   raise(name: string, value: number): void {
     this.rec.raise(name, value);
+  }
+
+  /** Records `cells` extra memory in use (arrays, queue entries). */
+  alloc(cells: number): void {
+    this.rec.alloc(cells);
+  }
+
+  /** Releases `cells` extra memory. */
+  free(cells: number): void {
+    this.rec.free(cells);
+  }
+
+  /** Records entering one recursive call. */
+  enter(): void {
+    this.rec.enter();
+  }
+
+  /** Records returning from a recursive call. */
+  leave(): void {
+    this.rec.leave();
   }
 
   /**
@@ -262,5 +291,6 @@ export function defineGraph(s: GraphSpec): AlgorithmDef<FormInput, unknown> {
     input: { kind: 'form', maxSize: 100, defaultSize: 0, form: s.input.form, randomize: s.input.randomize },
     run: s.run,
     view: s.view ?? 'graph',
+    scale: s.input.scale,
   };
 }

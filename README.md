@@ -15,7 +15,7 @@ An interactive algorithm visualizer. Every algorithm is recorded step by step, s
 | String matching (3) | KMP, Rabin-Karp, Z-algorithm |
 | Backtracking and classics (12) | N-Queens, Sudoku, Tower of Hanoi, permutations, subsets, subset sum, sieve of Eratosthenes, GCD, fast exponentiation, stack, queue, deque |
 
-Extras: **race mode** (up to four sorts on the same data), a growth-rate chart per algorithm, optional step sounds (pitch follows the values), draw-your-own walls on pathfinding boards, edit-your-own graphs and boards, light and dark themes, a search palette (Ctrl/Cmd+K), and shareable URLs that restore your data and the exact step.
+Extras: a **Complexity Lab** in every Theory tab (runs the algorithm on growing inputs, plots the time and peak memory it really used, fits the growth curve, overlays another algorithm, and marks your own run as it plays), a **counter timeline** in the Stats tab (drag to scrub), **bars or array boxes** for sorting and searching with elements that slide when they move, **race mode** (up to four sorts on the same data), optional step sounds (pitch follows the values), draw-your-own walls on pathfinding boards, edit-your-own graphs and boards, light and dark themes, a search palette (Ctrl/Cmd+K), and shareable URLs that restore your data and the exact step.
 
 ## Run it
 
@@ -43,7 +43,8 @@ npm run build      # static site in dist/
 Each algorithm is a pure function `run(input) -> Step[]`. A `Step` holds a full state snapshot, highlight marks, the active pseudocode line, a one-sentence explanation, and running counters. Because the whole run is recorded first, the player only moves an index, which makes stepping backward and scrubbing free. Eight renderers (bars, linked list, table, grid, graph, tree, text, Hanoi) draw the states.
 
 ```
-src/core/         Step contract, registry, recorders, forms, player math, URL state, sound
+src/core/         Step contract, registry, recorders, forms, player math, URL state, sound,
+                  scaling recipes, growth fitting, lab engine, element identities
 src/algorithms/   One folder per family (sorting, searching, linkedlist, graph, pathfinding, tree, dp, strings, classics)
 src/views/        The eight renderers and the color legend
 src/ui/           App shell: sidebar, palette, inputs, player dock, panels, landing page, race
@@ -55,7 +56,7 @@ tests/            Algorithm correctness against reference implementations, regis
 
 1. Create a definition in the family folder: `defineSort`, `defineSearch`, `defineGraph`, `definePath`, `defineTree`, or the generic `defineForm` (see `src/algorithms/define.ts`). Record steps with `Tracer`, `SearchTracer`, `Rec`, or `Table`.
 2. Add it to that family's `index.ts` array.
-3. Add theory text in `src/algorithms/theoryExtra.ts`.
+3. Add theory text in `src/algorithms/theoryExtra.ts`. For the Complexity Lab, give it a `scale` recipe (array, search, and list algorithms get one automatically) and record extra memory with `alloc`/`free` and recursion with `enter`/`leave`.
 4. Run `npm test`. The registry contract test checks that every step has an explanation, a valid pseudocode line, and non-decreasing counters, and that random inputs run without errors.
 
 ## Deploy

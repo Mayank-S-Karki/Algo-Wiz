@@ -136,7 +136,36 @@ export interface AlgorithmDef<I = unknown, S = unknown> {
   run: (input: I) => Step<S>[];
   /** Renderer that draws `Step.state`. */
   view: ViewKind;
+  /** How to generate inputs of growing size for the Complexity Lab. Array, search, and list algorithms get one automatically. */
+  scale?: ScaleSpec<I>;
 }
+
+/** One kind of input the Complexity Lab measures (sorted, random, reversed ...). */
+export interface ScaleShape {
+  id: string;
+  label: string;
+  /** How many random seeds to average; 1 for deterministic shapes. */
+  seeds: number;
+}
+
+/** Recipe for inputs of growing size, used to measure how an algorithm scales. */
+export interface ScaleSpec<I = unknown> {
+  /** Input sizes to measure, smallest first. */
+  sizes: number[];
+  /** Name of the size on the x axis, e.g. "elements", "nodes", "cells". */
+  unit: string;
+  shapes: ScaleShape[];
+  /**
+   * Builds one input.
+   * @param n - size
+   * @param shape - shape id
+   * @param seed - random seed
+   */
+  make: (n: number, shape: string, seed: number) => I;
+  /** Size of an input the user built, so the current run can be placed on the chart. */
+  sizeOf: (input: I) => number;
+}
+
 
 /** State drawn by {@link ViewKind} `bars` for sorting algorithms. */
 export interface ArrayState {

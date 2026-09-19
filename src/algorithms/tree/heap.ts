@@ -3,6 +3,7 @@ import { mulberry32 } from '../../core/random';
 import type { AlgorithmDef, FieldSpec, FormInput, Mark, Step, TreeNode, TreeState } from '../../core/step';
 import { Rec } from '../../core/tracer';
 import { theoryFor } from '../theory';
+import { shape, spread } from '../../core/scale';
 import { MAX_KEYS } from './util';
 
 /** Draws a heap stored in an array as a complete binary tree plus the array itself. */
@@ -18,7 +19,7 @@ function heapState(a: number[]): TreeState {
 
 /** A min-heap or max-heap with step recording. */
 class Heap {
-  readonly rec = new Rec<TreeState>(['comparisons', 'swaps']);
+  readonly rec = new Rec<TreeState>(['comparisons', 'swaps', 'memory']);
   silent = true;
 
   /**
@@ -137,6 +138,17 @@ function defineHeap(id: string, name: string, summary: string, pseudocode: strin
     theory: theoryFor(id),
     input: { kind: 'form', maxSize: 100, defaultSize: 0, form: heapForm(keys, withValue), randomize: heapRandom },
     view: 'tree',
+    scale: {
+      sizes: spread(1, MAX_KEYS),
+      unit: 'keys',
+      shapes: [shape('random', 'Random keys', 3), shape('reversed', 'Descending keys')],
+      make: (n, s, seed) => {
+        const rnd = mulberry32(seed * 17 + n);
+        const keys = s === 'reversed' ? Array.from({ length: n }, (_, i) => 10 * (n - i)) : Array.from({ length: n }, () => 1 + Math.floor(rnd() * 60));
+        return { kind: 'min', keys, value: s === 'reversed' ? 1 : 1 + Math.floor(rnd() * 60) };
+      },
+      sizeOf: (i) => (i.keys as number[]).length,
+    },
     run(input): Step<TreeState>[] {
       const h = new Heap([], str(input, 'kind') !== 'max');
       run(h, input);
