@@ -29,7 +29,10 @@ export type MarkKind =
   | 'insert'
   | 'delete'
   | 'notfound'
-  | 'pointer';
+  | 'pointer'
+  | 'frontier'
+  | 'visited'
+  | 'path';
 
 /** A highlight on one index (array position or list node). */
 export interface Mark {
@@ -76,10 +79,29 @@ export interface Theory {
   notes?: string[];
 }
 
+/** One field of a generic input form. Values are parsed by `core/forms.ts`. */
+export type FieldSpec =
+  | { key: string; label: string; type: 'numbers'; default: string; max?: number; help?: string }
+  | { key: string; label: string; type: 'int'; default: number; min?: number; max?: number; help?: string }
+  | { key: string; label: string; type: 'text'; default: string; help?: string; maxLength?: number }
+  | { key: string; label: string; type: 'select'; default: string; options: Array<{ value: string; label: string }> };
+
+/** Parsed value of a form field: numbers, an integer, or text. */
+export type FormValue = number[] | number | string;
+
+/** Input to every algorithm whose spec kind is `form`. */
+export type FormInput = Record<string, FormValue>;
+
 /** Describes the input controls the UI must offer for an algorithm. */
 export interface InputSpec {
-  /** `array`: numbers only. `array+target`: numbers plus a search target. `list`: linked-list input. */
-  kind: 'array' | 'array+target' | 'list';
+  /** `array`: numbers only. `array+target`: numbers plus a search target. `list`: linked-list input. `form`: generic fields. */
+  kind: 'array' | 'array+target' | 'list' | 'form';
+  /** Fields for the generic form (kind `form`). */
+  form?: FieldSpec[];
+  /** Builds raw field text for the "Random" button from a seed (kind `form`). */
+  randomize?: (seed: number) => Record<string, string>;
+  /** Label for the random button; defaults to "Random". */
+  randomLabel?: string;
   /** Largest allowed input size; keeps step arrays small enough for memory. */
   maxSize: number;
   /** Size used by the "random" generator by default. */
@@ -150,6 +172,99 @@ export type ListOp =
   | 'search'
   | 'reverse'
   | 'middle';
+
+/** A cell value in a table: text, number, or empty. */
+export type Cell = string | number | null;
+
+/** State drawn by the `cells` view: a labeled table (DP tables, sieve, stack, queue ...). Marks use the flat index `row * cols + col`. */
+export interface TableState {
+  rows: number;
+  cols: number;
+  /** Row-major cell contents, length rows * cols. */
+  cells: Cell[];
+  rowLabels?: string[];
+  colLabels?: string[];
+  /** Short line drawn above the table. */
+  caption?: string;
+}
+
+/** State drawn by the `grid` view (pathfinding, mazes, Sudoku, N-Queens). Marks use the flat index `row * cols + col`. */
+export interface GridState {
+  rows: number;
+  cols: number;
+  walls: boolean[];
+  /** Movement cost per cell (mud); absent means every cell costs 1. */
+  cost?: number[];
+  start?: number;
+  goal?: number;
+  /** Text drawn in each cell (digits, queens). */
+  text?: string[];
+  /** Cells that are fixed clues (Sudoku givens). */
+  fixed?: boolean[];
+  /** Draw thicker borders every `block` cells (3 for Sudoku). */
+  block?: number;
+}
+
+/** State drawn by the `graph` view. Marks use node indices; edges are marked through `edgeMarks`. */
+export interface GraphState {
+  nodes: Array<{ x: number; y: number; label: string; sub?: string }>;
+  edges: Array<{ from: number; to: number; w?: number }>;
+  directed: boolean;
+  weighted: boolean;
+  /** Marked edges keyed by {@link edgeKey}. */
+  edgeMarks: Record<string, MarkKind>;
+}
+
+/**
+ * Key used to look up an edge in `GraphState.edgeMarks`.
+ * @param a - one endpoint
+ * @param b - other endpoint
+ * @param directed - whether direction matters
+ * @returns a stable string key
+ */
+export function edgeKey(a: number, b: number, directed: boolean): string {
+  return directed ? `${a}>${b}` : `${Math.min(a, b)}-${Math.max(a, b)}`;
+}
+
+/** One node of a drawn tree. */
+export interface TreeNode {
+  label: string;
+  /** Child node ids in order; `null` keeps a slot empty in binary trees. */
+  children: Array<number | null>;
+  color?: 'red' | 'black';
+  /** Small caption under the node (height, sum, rank ...). */
+  sub?: string;
+}
+
+/** State drawn by the `tree` view. Marks use node ids. */
+export interface TreeState {
+  nodes: Record<number, TreeNode>;
+  /** Root ids; several roots draw a forest (union-find). */
+  roots: number[];
+  /** Binary trees are laid out by in-order rank; others by subtree width. */
+  binary: boolean;
+  /** Optional array drawn under the tree (heaps). */
+  array?: Array<number | string>;
+  arrayLabel?: string;
+}
+
+/** State drawn by the `text` view (string matching). Marks index into `text`. */
+export interface TextState {
+  text: string;
+  pattern: string;
+  /** Position in `text` where the pattern is currently aligned. */
+  shift: number;
+  /** Optional helper table shown below (failure function, Z array, hashes). */
+  table?: Array<number | string>;
+  tableLabel?: string;
+}
+
+/** State drawn by the `hanoi` view. */
+export interface HanoiState {
+  /** Disk sizes on each peg, bottom first. */
+  pegs: number[][];
+  n: number;
+}
 
 /** State drawn by the `list` view. */
 export interface ListState {

@@ -196,3 +196,49 @@ export function rangeMarks(lo: number, hi: number): Mark[] {
   for (let i = Math.max(lo, 0); i <= hi; i++) marks.push({ kind: 'range', index: i });
   return marks;
 }
+
+/**
+ * Generic recorder for families whose state is not an array (graphs, trees, tables, grids ...).
+ * Counters only increase, which the registry contract test relies on.
+ */
+export class Rec<S> {
+  /** Recorded steps, in order. */
+  readonly steps: Step<S>[] = [];
+  private stats: Record<string, number> = {};
+
+  /**
+   * @param counters - names of the counters to show, all starting at zero
+   */
+  constructor(counters: string[] = []) {
+    for (const c of counters) this.stats[c] = 0;
+  }
+
+  /**
+   * Increases a counter.
+   * @param name - counter name (created on first use)
+   * @param by - amount to add, default 1
+   */
+  count(name: string, by = 1): void {
+    this.stats[name] = (this.stats[name] ?? 0) + by;
+  }
+
+  /**
+   * Overwrites a counter with a value that is never lower than before.
+   * @param name - counter name
+   * @param value - new value; ignored if smaller than the current one
+   */
+  raise(name: string, value: number): void {
+    this.stats[name] = Math.max(this.stats[name] ?? 0, value);
+  }
+
+  /**
+   * Pushes a step.
+   * @param state - snapshot to draw
+   * @param marks - highlights
+   * @param line - active pseudocode line
+   * @param explain - sentence for this frame
+   */
+  snap(state: S, marks: Mark[], line: number | null, explain: string): void {
+    this.steps.push({ state, marks, line, explain, stats: { ...this.stats } });
+  }
+}

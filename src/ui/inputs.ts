@@ -64,7 +64,7 @@ export function buildInput(spec: InputSpec, form: RawForm): Built {
  * @returns kinds for the legend
  */
 export function kindsUsed(steps: Step<unknown>[]): MarkKind[] {
-  const order: MarkKind[] = ['compare', 'swap', 'pivot', 'active', 'pointer', 'range', 'insert', 'delete', 'sorted', 'found', 'notfound'];
+  const order: MarkKind[] = ['compare', 'swap', 'pivot', 'active', 'pointer', 'frontier', 'range', 'insert', 'delete', 'visited', 'sorted', 'path', 'found', 'notfound'];
   const seen = new Set<MarkKind>();
   for (const s of steps) for (const m of s.marks) seen.add(m.kind);
   return order.filter((k) => seen.has(k));

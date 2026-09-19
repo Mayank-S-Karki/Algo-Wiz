@@ -14,10 +14,13 @@ export const MARK_META: Record<MarkKind, { label: string; hint: string }> = {
   delete: { label: 'Removing', hint: 'About to be removed' },
   notfound: { label: 'Ruled out', hint: 'Cannot be the target' },
   pointer: { label: 'Pointer', hint: 'A named pointer or boundary' },
+  frontier: { label: 'Frontier', hint: 'Discovered, waiting to be processed' },
+  visited: { label: 'Visited', hint: 'Already processed' },
+  path: { label: 'Path', hint: 'Part of the answer' },
 };
 
 /** When several marks land on one index, the earliest kind in this list decides the color. */
-const PRIORITY: MarkKind[] = ['found', 'swap', 'delete', 'pivot', 'compare', 'insert', 'active', 'pointer', 'sorted', 'range', 'notfound'];
+const PRIORITY: MarkKind[] = ['found', 'path', 'swap', 'delete', 'pivot', 'compare', 'insert', 'active', 'pointer', 'frontier', 'sorted', 'visited', 'range', 'notfound'];
 
 /** What a view needs to draw one index. */
 export interface IndexMark {

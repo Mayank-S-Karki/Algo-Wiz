@@ -1,9 +1,15 @@
 import { REGISTRY } from '../../src/algorithms';
 import type { SearchInput, ListInput } from '../../src/core/step';
 import { makeArray } from '../../src/core/random';
+import { buildForm, defaultRaw } from '../../src/core/forms';
 
 /** Builds the default input for an algorithm, the same way the UI does. */
 function defaultInput(def: (typeof REGISTRY.all)[number]): unknown {
+  if (def.input.kind === 'form') {
+    const built = buildForm(def.input.form!, defaultRaw(def));
+    if (!built.ok) throw new Error(`${def.id}: ${built.error}`);
+    return built.input;
+  }
   const n = def.input.defaultSize;
   const arr = makeArray('random', n, 11);
   if (def.input.kind === 'array') return arr;
@@ -15,9 +21,9 @@ function defaultInput(def: (typeof REGISTRY.all)[number]): unknown {
 }
 
 describe('registry contract', () => {
-  it('has unique ids and 50+ algorithms', () => {
+  it('has unique ids and 110+ algorithms', () => {
     expect(new Set(REGISTRY.all.map((d) => d.id)).size).toBe(REGISTRY.all.length);
-    expect(REGISTRY.all.length).toBeGreaterThanOrEqual(54);
+    expect(REGISTRY.all.length).toBeGreaterThanOrEqual(110);
   });
   describe.each(REGISTRY.all.map((d) => [d.id, d] as const))('%s', (_id, def) => {
     const steps = def.run(defaultInput(def));
@@ -42,5 +48,26 @@ describe('registry contract', () => {
         for (const [k, v] of Object.entries(steps[i].stats)) expect(v).toBeGreaterThanOrEqual(steps[i - 1].stats[k] ?? 0);
       }
     });
+  });
+});
+
+describe('random inputs', () => {
+  const forms = REGISTRY.all.filter((d) => d.input.kind === 'form' && d.input.randomize);
+  it.each(forms.map((d) => [d.id, d] as const))('%s runs on seeds 1 to 8', (_id, def) => {
+    for (let seed = 1; seed <= 8; seed++) {
+      const raw = { ...defaultRaw(def), ...def.input.randomize!(seed) };
+      const built = buildForm(def.input.form!, raw);
+      if (!built.ok) throw new Error(`seed ${seed}: ${built.error}`);
+      const steps = def.run(built.input);
+      expect(steps.length).toBeGreaterThan(1);
+      expect(steps.length).toBeLessThan(20000);
+    }
+  });
+});
+
+describe('theory coverage', () => {
+  it('every algorithm has an invariant or notes to show', () => {
+    const missing = REGISTRY.all.filter((d) => !d.theory.invariant && !(d.theory.notes && d.theory.notes.length)).map((d) => d.id);
+    expect(missing).toEqual([]);
   });
 });

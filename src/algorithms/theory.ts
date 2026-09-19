@@ -4,6 +4,7 @@
  * generic fallback in the Theory panel.
  */
 import type { Theory } from '../core/step';
+import { THEORY_EXTRA } from './theoryExtra';
 
 /** Ported theory entries, keyed by algorithm id. */
 export const THEORY: Record<string, Theory> = {
@@ -189,5 +190,5 @@ export const THEORY: Record<string, Theory> = {
  * @returns the theory entry, or an empty object when none was ported
  */
 export function theoryFor(id: string): Theory {
-  return THEORY[id] ?? {};
+  return THEORY[id] ?? THEORY_EXTRA[id] ?? {};
 }
