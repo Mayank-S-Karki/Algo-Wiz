@@ -21,7 +21,7 @@ function absolutize(value: unknown, origin: string): unknown {
 /**
  * Builds the `<head>` tags for a page: title, description, canonical, robots, Open Graph, Twitter, JSON-LD.
  * @param meta - page metadata
- * @param origin - public origin such as `https://algowiz.vercel.app`
+ * @param origin - public origin such as `https://algowiz-five.vercel.app`
  */
 export function headTags(meta: PageMeta, origin: string): string {
   const url = origin + meta.path;
