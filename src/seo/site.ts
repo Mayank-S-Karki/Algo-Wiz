@@ -25,5 +25,5 @@ export function siteUrl(env: Record<string, string | undefined> = {}): string {
   if (explicit) return explicit.replace(/\/+$/, '');
   const vercel = env.VERCEL_PROJECT_PRODUCTION_URL?.trim();
   if (vercel) return `https://${vercel.replace(/^https?:\/\//, '').replace(/\/+$/, '')}`;
-  return 'https://algowiz.vercel.app';
+  return 'https://algowiz-five.vercel.app';
 }

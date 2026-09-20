@@ -10,8 +10,8 @@ const TEMPLATE = '<html><head><!--seo-head--></head><body><div id="root"></div><
 describe('siteUrl', () => {
   it('prefers an explicit SITE_URL, then Vercel, then the default', () => {
     expect(siteUrl({ SITE_URL: 'https://a.dev/' })).toBe('https://a.dev');
-    expect(siteUrl({ VERCEL_PROJECT_PRODUCTION_URL: 'algowiz.vercel.app' })).toBe('https://algowiz.vercel.app');
-    expect(siteUrl({})).toBe('https://algowiz.vercel.app');
+    expect(siteUrl({ VERCEL_PROJECT_PRODUCTION_URL: 'algowiz.vercel.app' })).toBe('https://algowiz-five.vercel.app');
+    expect(siteUrl({})).toBe('https://algowiz-five.vercel.app');
   });
 });
 

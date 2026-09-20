@@ -65,7 +65,7 @@ tests/            Algorithm correctness against reference implementations, regis
 
 It is a static site (no server). `npm run build` type-checks, builds the app, then runs `scripts/build-seo.ts`, which writes one HTML file per page (home, `/algorithms`, `/race`, and `/algorithms/<id>` for all 117 algorithms), plus `sitemap.xml`, `robots.txt`, and a real `404.html`.
 
-On Vercel, `vercel.json` supplies everything (clean URLs, cache headers). The public origin used in canonical URLs and the sitemap comes from `SITE_URL`, else Vercel's production domain, else `https://algowiz.vercel.app`. Any static host that serves `dist/` with clean URLs and a custom 404 works.
+On Vercel, `vercel.json` supplies everything (clean URLs, cache headers). The public origin used in canonical URLs and the sitemap comes from `SITE_URL`, else Vercel's production domain, else `https://algowiz-five.vercel.app`. Any static host that serves `dist/` with clean URLs and a custom 404 works.
 
 ## Search engines
 
