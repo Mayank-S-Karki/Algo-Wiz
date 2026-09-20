@@ -31,3 +31,6 @@ All of it stops under `prefers-reduced-motion`; revealed content is never hidden
 
 ## Charts
 Complexity Lab and counter timeline use the accent for the main series and data colors for input shapes (sorted green, random accent, reversed crimson). Fitted curves are dashed and faint; the compare overlay is a dashed foreground line; the user's run is a pulsing accent dot. Every chart has a text alternative.
+
+## Pages and URLs
+Real paths, not hashes: `/`, `/algorithms` (a browsable directory of everything), `/race`, `/algorithms/<id>`. Names that repeat across families (linked-list operations, grid and graph BFS) show their group in front so every page has a unique title. Static content inside `#root` is styled as a plain readable page (`.seo`) for crawlers and no-JavaScript visitors, and replaced by the app on load.

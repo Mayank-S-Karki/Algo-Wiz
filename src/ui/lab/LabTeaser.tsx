@@ -3,7 +3,8 @@ import { useEffect, useState } from 'react';
 import { REGISTRY } from '../../algorithms';
 import { bestFit } from '../../core/fit';
 import { metricOf } from '../../core/lab';
-import { encodeHash } from '../../core/urlState';
+import { hrefFor } from '../../core/routes';
+import { Link } from '../Link';
 import { useInView } from '../useInView';
 import { LabChart, type LabSeries } from './LabChart';
 import { useLab } from './useLab';
@@ -44,11 +45,11 @@ export function LabTeaser() {
         <ul className="teaser-legend">
           {series.map((s) => (
             <li key={s.id} style={{ ['--tone' as string]: s.color }}>
-              <a href={encodeHash({ id: s.id })}>
+              <Link href={hrefFor({ id: s.id })}>
                 <i aria-hidden="true" />
                 {s.label}
                 {s.fit && <b>≈ {s.fit.cls.label}</b>}
-              </a>
+              </Link>
             </li>
           ))}
         </ul>

@@ -4,16 +4,16 @@ import { buildInput } from '../../src/ui/inputs';
 import { bubbleSort } from '../../src/algorithms/sorting/bubble';
 import { binarySearch } from '../../src/algorithms/searching/binary';
 
-/** Points the hash at a route and lets the app react. */
-function go(hash: string) {
+/** Moves to a path and lets the app react, like a click on an internal link. */
+function go(path: string) {
   act(() => {
-    window.location.hash = hash;
-    window.dispatchEvent(new HashChangeEvent('hashchange'));
+    window.history.pushState(null, '', path);
+    window.dispatchEvent(new PopStateEvent('popstate'));
   });
 }
 
 beforeEach(() => {
-  window.location.hash = '#/';
+  window.history.pushState(null, '', '/');
   window.scrollTo = () => {};
 });
 
@@ -22,26 +22,26 @@ describe('routing', () => {
     render(<App />);
     expect(screen.getByRole('heading', { name: /watch algorithms think/i })).toBeInTheDocument();
   });
-  it('opens an algorithm from the hash', () => {
-    window.location.hash = '#/a/bubble-sort';
+  it('opens an algorithm from its path', () => {
+    window.history.pushState(null, '', '/algorithms/bubble-sort');
     render(<App />);
     expect(screen.getByRole('heading', { level: 1, name: 'Bubble Sort' })).toBeInTheDocument();
   });
   it('shows a not-found page for unknown ids', () => {
-    window.location.hash = '#/a/nope';
+    window.history.pushState(null, '', '/algorithms/nope');
     render(<App />);
-    expect(screen.getByText('Algorithm not found')).toBeInTheDocument();
+    expect(screen.getByText('Page not found')).toBeInTheDocument();
   });
-  it('follows hash changes', () => {
+  it('follows navigation', () => {
     render(<App />);
-    go('#/a/quick-sort');
+    go('/algorithms/quick-sort');
     expect(screen.getByRole('heading', { level: 1, name: 'Quick Sort' })).toBeInTheDocument();
   });
 });
 
 describe('playback and shortcuts', () => {
   it('steps forward and back with buttons and arrow keys', () => {
-    window.location.hash = '#/a/bubble-sort';
+    window.history.pushState(null, '', '/algorithms/bubble-sort');
     render(<App />);
     expect(screen.getByText(/Step 1 of/)).toBeInTheDocument();
     fireEvent.click(screen.getByRole('button', { name: 'Next step' }));
@@ -62,7 +62,7 @@ describe('playback and shortcuts', () => {
     expect(document.documentElement.dataset.theme).not.toBe(before);
   });
   it('ignores shortcuts while typing in a field', () => {
-    window.location.hash = '#/a/bubble-sort';
+    window.history.pushState(null, '', '/algorithms/bubble-sort');
     render(<App />);
     const field = screen.getByLabelText('Numbers');
     fireEvent.keyDown(field, { key: 'ArrowRight' });
@@ -72,14 +72,14 @@ describe('playback and shortcuts', () => {
 
 describe('input validation', () => {
   it('shows an inline error for bad input and keeps the last run', () => {
-    window.location.hash = '#/a/bubble-sort';
+    window.history.pushState(null, '', '/algorithms/bubble-sort');
     render(<App />);
     fireEvent.change(screen.getByLabelText('Numbers'), { target: { value: '3, x, 1' } });
     expect(screen.getByRole('alert')).toHaveTextContent('"x" is not a whole number.');
     expect(screen.getByText(/Step 1 of/)).toBeInTheDocument();
   });
   it('runs the algorithm on valid custom input', () => {
-    window.location.hash = '#/a/bubble-sort';
+    window.history.pushState(null, '', '/algorithms/bubble-sort');
     render(<App />);
     fireEvent.change(screen.getByLabelText('Numbers'), { target: { value: '3, 1, 2' } });
     expect(screen.queryByRole('alert')).toBeNull();
@@ -97,7 +97,7 @@ describe('search palette', () => {
     expect(screen.getByRole('option', { name: /Heap Sort/ })).toBeInTheDocument();
     expect(screen.queryByRole('option', { name: /Bubble Sort/ })).toBeNull();
     fireEvent.keyDown(box, { key: 'Enter' });
-    expect(window.location.hash).toBe('#/a/heap-sort');
+    expect(window.location.pathname).toBe('/algorithms/heap-sort');
   });
   it('opens with Ctrl+K and closes with Escape', () => {
     render(<App />);
@@ -116,7 +116,7 @@ describe('search palette', () => {
 
 describe('sidebar', () => {
   it('lists algorithms from every family on algorithm pages', () => {
-    window.location.hash = '#/a/bubble-sort';
+    window.history.pushState(null, '', '/algorithms/bubble-sort');
     render(<App />);
     for (const name of ['Bubble Sort', 'Binary Search', 'Dijkstra\'s Shortest Paths', 'Sudoku Solver', 'KMP']) {
       expect(screen.getAllByRole('link', { name: new RegExp(name.split(' (')[0]) }).length).toBeGreaterThan(0);
@@ -126,20 +126,20 @@ describe('sidebar', () => {
 
 describe('form-based algorithms', () => {
   it('shows an error for a bad edge list and keeps the last run', () => {
-    window.location.hash = '#/a/graph-bfs';
+    window.history.pushState(null, '', '/algorithms/graph-bfs');
     render(<App />);
     fireEvent.change(screen.getByLabelText('Edges'), { target: { value: 'A~B' } });
     expect(screen.getByRole('alert')).toHaveTextContent('not an edge');
     expect(screen.getByText(/Step 1 of/)).toBeInTheDocument();
   });
   it('recomputes when the input becomes valid', () => {
-    window.location.hash = '#/a/graph-bfs';
+    window.history.pushState(null, '', '/algorithms/graph-bfs');
     render(<App />);
     fireEvent.change(screen.getByLabelText('Edges'), { target: { value: 'A-B' } });
     expect(screen.queryByRole('alert')).toBeNull();
   });
   it('toggling a board cell edits the wall list', () => {
-    window.location.hash = '#/a/grid-bfs';
+    window.history.pushState(null, '', '/algorithms/grid-bfs');
     render(<App />);
     const walls = screen.getByLabelText('Walls (cell numbers)') as HTMLInputElement;
     const before = walls.value;
@@ -151,14 +151,14 @@ describe('form-based algorithms', () => {
 
 describe('race page', () => {
   it('renders all four racers and finishes them', () => {
-    window.location.hash = '#/race';
+    window.history.pushState(null, '', '/race');
     render(<App />);
     expect(screen.getByRole('heading', { name: 'Sorting race' })).toBeInTheDocument();
     fireEvent.keyDown(window, { key: 'End' });
     expect(screen.getAllByText(/Finished #/).length).toBe(4);
   });
   it('limits the race to four algorithms', () => {
-    window.location.hash = '#/race';
+    window.history.pushState(null, '', '/race');
     render(<App />);
     expect(screen.getByRole('button', { name: 'Heap Sort' })).toBeDisabled();
   });
@@ -178,7 +178,7 @@ describe('buildInput', () => {
 
 describe('complexity lab and timeline', () => {
   it('shows the lab in the Theory tab and switches to space', async () => {
-    window.location.hash = '#/a/merge-sort';
+    window.history.pushState(null, '', '/algorithms/merge-sort');
     render(<App />);
     fireEvent.click(screen.getByRole('tab', { name: 'Theory' }));
     expect(screen.getByRole('heading', { name: 'Complexity Lab' })).toBeInTheDocument();
@@ -188,13 +188,13 @@ describe('complexity lab and timeline', () => {
     expect(await screen.findByText(/grows like/, {}, { timeout: 4000 })).toBeInTheDocument();
   });
   it('explains when an algorithm cannot be scaled', () => {
-    window.location.hash = '#/a/sudoku';
+    window.history.pushState(null, '', '/algorithms/sudoku');
     render(<App />);
     fireEvent.click(screen.getByRole('tab', { name: 'Theory' }));
     expect(screen.getByText(/cannot be measured/)).toBeInTheDocument();
   });
   it('opens and closes the larger view', () => {
-    window.location.hash = '#/a/bubble-sort';
+    window.history.pushState(null, '', '/algorithms/bubble-sort');
     render(<App />);
     fireEvent.click(screen.getByRole('tab', { name: 'Theory' }));
     fireEvent.click(screen.getByRole('button', { name: /larger view/ }));
@@ -203,7 +203,7 @@ describe('complexity lab and timeline', () => {
     expect(screen.queryByRole('dialog')).toBeNull();
   });
   it('draws a counter timeline in the Stats tab', () => {
-    window.location.hash = '#/a/bubble-sort';
+    window.history.pushState(null, '', '/algorithms/bubble-sort');
     render(<App />);
     fireEvent.click(screen.getByRole('tab', { name: 'Stats' }));
     expect(screen.getByRole('group', { name: /Counters over the run/ })).toBeInTheDocument();
@@ -213,7 +213,7 @@ describe('complexity lab and timeline', () => {
 
 describe('array display mode', () => {
   it('switches between bars and boxes', () => {
-    window.location.hash = '#/a/bubble-sort';
+    window.history.pushState(null, '', '/algorithms/bubble-sort');
     render(<App />);
     expect(document.querySelector('.bars')).not.toBeNull();
     fireEvent.click(screen.getByRole('radio', { name: /Array/ }));

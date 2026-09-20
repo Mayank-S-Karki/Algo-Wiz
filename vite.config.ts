@@ -2,9 +2,9 @@
 import { defineConfig } from 'vite';
 import react from '@vitejs/plugin-react';
 
-/** Vite + Vitest configuration. Relative base so the static build works on any host path. */
+/** Vite + Vitest configuration. Absolute base: pages live at real paths like /algorithms/bubble-sort, so assets must not resolve relative to them. */
 export default defineConfig({
-  base: './',
+  base: '/',
   plugins: [react()],
   test: {
     environment: 'jsdom',

@@ -1,6 +1,6 @@
 import { clampIndex, stepDelayMs } from '../../src/core/player';
 import { mulberry32, makeArray, parseNumbers } from '../../src/core/random';
-import { encodeHash, decodeHash } from '../../src/core/urlState';
+import { hrefFor, legacyHashPath, parseUrl } from '../../src/core/routes';
 import { Tracer, SearchTracer } from '../../src/core/tracer';
 import { createRegistry } from '../../src/core/registry';
 import type { AlgorithmDef } from '../../src/core/step';
@@ -43,18 +43,37 @@ describe('random helpers', () => {
   });
 });
 
-describe('url state', () => {
-  it('round-trips', () => {
-    const s = { id: 'bubble-sort', q: '5,3,8', t: 3, s: 4 };
-    expect(decodeHash(encodeHash(s))).toEqual(s);
+describe('routes', () => {
+  it('builds and parses paths with shareable state', () => {
+    const href = hrefFor({ id: 'bubble-sort', q: '5,3,8', t: 3, s: 4 });
+    expect(href).toBe('/algorithms/bubble-sort?q=5%2C3%2C8&t=3&s=4');
+    const [path, search] = href.split('?');
+    expect(parseUrl(path, `?${search}`)).toEqual({ page: 'algorithm', id: 'bubble-sort', q: '5,3,8', t: 3, s: 4 });
   });
-  it('landing and garbage decode to null id', () => {
-    expect(encodeHash({ id: null })).toBe('#/');
-    expect(decodeHash('#/')).toEqual({ id: null });
-    expect(decodeHash('#/zzz')).toEqual({ id: null });
+  it('maps the fixed pages', () => {
+    expect(hrefFor({ page: 'home' })).toBe('/');
+    expect(hrefFor({ page: 'index' })).toBe('/algorithms');
+    expect(parseUrl('/')).toEqual({ page: 'home', id: null });
+    expect(parseUrl('/race/')).toEqual({ page: 'race', id: null });
+    expect(parseUrl('/algorithms')).toEqual({ page: 'index', id: null });
   });
-  it('ignores bad numeric params', () => {
-    expect(decodeHash('#/a/x?t=abc&s=-2')).toEqual({ id: 'x' });
+  it('treats unknown paths as missing', () => {
+    expect(parseUrl('/nope').page).toBe('missing');
+    expect(parseUrl('/algorithms/a/b').page).toBe('missing');
+  });
+  it('ignores bad numeric params and damaged form state', () => {
+    expect(parseUrl('/algorithms/x', '?t=abc&s=-2&f=%7Bbroken')).toEqual({ page: 'algorithm', id: 'x' });
+  });
+  it('round-trips form fields', () => {
+    const f = { edges: 'A-B:4, B-C:2' };
+    const [path, search] = hrefFor({ id: 'dijkstra-graph', f }).split('?');
+    expect(parseUrl(path, `?${search}`).f).toEqual(f);
+  });
+  it('redirects legacy hash links', () => {
+    expect(legacyHashPath('#/a/bubble-sort?s=4')).toBe('/algorithms/bubble-sort?s=4');
+    expect(legacyHashPath('#/race')).toBe('/race');
+    expect(legacyHashPath('#/')).toBe('/');
+    expect(legacyHashPath('#families')).toBeNull();
   });
 });
 

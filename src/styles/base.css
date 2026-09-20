@@ -52,3 +52,14 @@ input[type='range']:focus-visible::-webkit-slider-thumb { box-shadow: 0 0 0 5px 
   *, *::before, *::after { animation: none !important; transition: none !important; scroll-behavior: auto !important; }
   .reveal-on [data-reveal]:not([data-shown='true']) { opacity: 1; transform: none; filter: none; }
 }
+
+/* Static page content shipped inside #root for crawlers and no-JavaScript visitors; the app replaces it on load. */
+.seo { max-width: 760px; margin: 0 auto; padding: 56px 24px; }
+.seo h1 { font-size: clamp(38px, 6vw, 56px); line-height: 1.05; margin-bottom: 14px; }
+.seo h2 { font-size: 26px; margin: 28px 0 8px; }
+.seo p, .seo li { color: var(--muted); }
+.seo ul, .seo ol { padding-left: 22px; list-style: disc; }
+.seo ol { list-style: decimal; }
+.seo pre { padding: 14px 16px; border: 1px solid var(--line-strong); border-radius: 12px; overflow-x: auto; font-family: var(--font-mono); font-size: 13.5px; }
+.seo nav { margin-top: 36px; padding-top: 16px; border-top: 1px solid var(--line); }
+.seo a { color: var(--fam); }

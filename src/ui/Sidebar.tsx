@@ -2,7 +2,8 @@
 import { MagnifyingGlass } from '@phosphor-icons/react';
 import { REGISTRY } from '../algorithms';
 import type { AlgorithmDef } from '../core/step';
-import { encodeHash } from '../core/urlState';
+import { hrefFor } from '../core/routes';
+import { Link } from './Link';
 import { FAMILIES } from './family';
 
 /** Props for {@link Sidebar}. */
@@ -48,7 +49,7 @@ export function Sidebar({ activeId, open, onNavigate, onSearch }: SidebarProps) 
                 <ul>
                   {list.map((d) => (
                     <li key={d.id}>
-                      <a href={encodeHash({ id: d.id })} aria-current={d.id === activeId ? 'page' : undefined} onClick={onNavigate}>{d.name}</a>
+                      <Link href={hrefFor({ id: d.id })} aria-current={d.id === activeId ? 'page' : undefined} onClick={onNavigate}>{d.name}</Link>
                     </li>
                   ))}
                 </ul>

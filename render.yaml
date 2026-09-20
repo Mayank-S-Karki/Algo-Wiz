@@ -1,7 +1,0 @@
-# Render Blueprint: deploys the app as a static site.
-services:
-  - type: web
-    name: algo-wiz
-    runtime: static
-    buildCommand: npm ci && npm run build
-    staticPublishPath: dist

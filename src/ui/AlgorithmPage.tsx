@@ -5,10 +5,11 @@ import { growthOf } from '../core/growth';
 import { makeArray, parseNumbers, type InputPreset } from '../core/random';
 import { pitchFor, tone } from '../core/sound';
 import type { AlgorithmDef, Step } from '../core/step';
-import { encodeHash, type UrlState } from '../core/urlState';
+import { hrefFor, type Route } from '../core/routes';
 import { StageView } from '../views/StageView';
 import { Legend } from '../views/Legend';
 import { familyMeta } from './family';
+import { displayName } from '../seo/meta';
 import { InputPanel } from './InputPanel';
 import { buildInput, fieldsOf, kindsUsed, stepBadge } from './inputs';
 import { PlayerDock } from './PlayerDock';
@@ -24,7 +25,7 @@ import { usePlayer } from './usePlayer';
 interface AlgorithmPageProps {
   def: AlgorithmDef<any, any>;
   /** State decoded from the URL when the page mounts. */
-  initial: UrlState;
+  initial: Route;
 }
 
 /**
@@ -43,7 +44,7 @@ function middleValue(values: number[]): number {
  * @param def - the algorithm
  * @param initial - URL state at mount
  */
-function initialRaw(def: AlgorithmDef<any, any>, initial: UrlState): Record<string, string> {
+function initialRaw(def: AlgorithmDef<any, any>, initial: Route): Record<string, string> {
   if (def.input.kind === 'form') return { ...defaultRaw(def), ...(initial.f ?? {}) };
   const seedValues = makeArray('random', def.input.defaultSize, 7);
   return {
@@ -153,7 +154,7 @@ export function AlgorithmPage({ def, initial }: AlgorithmPageProps) {
         history.replaceState(
           null,
           '',
-          encodeHash({
+          hrefFor({
             id: def.id,
             q: legacy && built.ok ? raw.text?.split(/[\s,;]+/).filter(Boolean).join(',') : undefined,
             t: spec.kind === 'array+target' && Number.isInteger(Number(raw.target)) ? Number(raw.target) : undefined,
@@ -200,8 +201,8 @@ export function AlgorithmPage({ def, initial }: AlgorithmPageProps) {
         <header className="page-head">
           <span className="fam-tile" aria-hidden="true"><FamIcon size={26} weight="duotone" /></span>
           <div className="head-text">
-            <h1>{def.name}</h1>
-            <p className="head-sub">{def.group ? `${def.group}. ` : ''}{def.summary}</p>
+            <h1>{displayName(def)}</h1>
+            <p className="head-sub">{def.summary}</p>
           </div>
           <ul className="chips" aria-label="Complexity">
             {(['best', 'average', 'worst', 'space'] as const).map((k) => (

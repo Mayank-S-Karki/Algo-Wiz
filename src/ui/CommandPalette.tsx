@@ -2,8 +2,9 @@
 import { MagnifyingGlass } from '@phosphor-icons/react';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { REGISTRY } from '../algorithms';
-import { encodeHash } from '../core/urlState';
+import { hrefFor, navigate } from '../core/routes';
 import { familyMeta } from './family';
+import { displayName } from '../seo/meta';
 
 /** One selectable row. */
 interface Item {
@@ -31,9 +32,10 @@ export function CommandPalette({ open, onClose }: CommandPaletteProps) {
 
   const all = useMemo<Item[]>(
     () => [
-      { label: 'Home', meta: 'Page', href: '#/', hue: 262 },
-      { label: 'Race sorting algorithms', meta: 'Page: compare up to four sorts side by side', href: '#/race', hue: 25 },
-      ...REGISTRY.all.map((d) => ({ label: d.name, meta: `${familyMeta(d.family).label}${d.group ? `, ${d.group}` : ''}`, href: encodeHash({ id: d.id }), hue: familyMeta(d.family).hue })),
+      { label: 'Home', meta: 'Page', href: '/', hue: 262 },
+      { label: 'All algorithms', meta: 'Page: the full index', href: '/algorithms', hue: 262 },
+      { label: 'Race sorting algorithms', meta: 'Page: compare up to four sorts side by side', href: '/race', hue: 25 },
+      ...REGISTRY.all.map((d) => ({ label: displayName(d), meta: `${familyMeta(d.family).label}${d.group ? `, ${d.group}` : ''}`, href: hrefFor({ id: d.id }), hue: familyMeta(d.family).hue })),
     ],
     [],
   );
@@ -60,7 +62,7 @@ export function CommandPalette({ open, onClose }: CommandPaletteProps) {
   /** Goes to an item and closes the palette. */
   const go = (it: Item | undefined) => {
     if (!it) return;
-    window.location.hash = it.href;
+    navigate(it.href);
     onClose();
   };
 

@@ -1,7 +1,8 @@
 /** Landing page: hero with a live run on a glass page, a scroll-driven sort, family pages, and the lab teaser. */
 import { ArrowRight, Trophy } from '@phosphor-icons/react';
 import { REGISTRY } from '../algorithms';
-import { encodeHash } from '../core/urlState';
+import { hrefFor } from '../core/routes';
+import { Link } from './Link';
 import { FAMILIES } from './family';
 import { LabTeaser } from './lab/LabTeaser';
 import { MiniStage } from './MiniStage';
@@ -34,9 +35,9 @@ export function Landing() {
             <a className="btn primary" href="#families" onClick={(e) => { e.preventDefault(); document.getElementById('families')?.scrollIntoView({ behavior: 'smooth' }); }}>
               Explore algorithms <ArrowRight size={18} weight="bold" />
             </a>
-            <a className="btn" href="#/race">
+            <Link className="btn" href="/race">
               <Trophy size={18} weight="bold" /> Race sorts
-            </a>
+            </Link>
           </div>
         </div>
         <div className="hero-page" aria-hidden="true">
@@ -65,7 +66,7 @@ export function Landing() {
           {FAMILIES.map((f, i) => {
             const defs = REGISTRY.byFamily(f.id);
             return (
-              <a key={f.id} className="tile" data-family={f.id} data-reveal style={{ ['--h' as string]: f.hue, ['--i' as string]: i % 3 }} href={encodeHash({ id: defs[0].id })}>
+              <Link key={f.id} className="tile" data-family={f.id} data-reveal style={{ ['--h' as string]: f.hue, ['--i' as string]: i % 3 }} href={hrefFor({ id: defs[0].id })}>
                 <div className="tile-view"><MiniStage id={f.previewId} speed={3} /></div>
                 <div className="tile-text">
                   <h3>
@@ -75,10 +76,13 @@ export function Landing() {
                   </h3>
                   <p>{f.pitch}</p>
                 </div>
-              </a>
+              </Link>
             );
           })}
         </div>
+        <p className="section-more" data-reveal>
+          <Link href="/algorithms">Browse all {total} algorithms <ArrowRight size={16} weight="bold" /></Link>
+        </p>
       </section>
 
       <LabTeaser />
